@@ -133,4 +133,36 @@ Graphics/Displays:
         let width = parse_main_display_width(output).unwrap();
         assert_eq!(width, 3456);
     }
+
+    #[test]
+    fn parse_system_profiler_output_selects_main_display() {
+        let output = r#"
+Graphics/Displays:
+
+    Studio Display:
+      Resolution: 5120 x 2880 Retina
+      Main Display: No
+
+    Built-In Display:
+      Resolution: 3456 x 2234 Retina
+      Main Display: Yes
+"#;
+
+        let width = parse_main_display_width(output).unwrap();
+        assert_eq!(width, 3456);
+    }
+
+    #[test]
+    fn parse_system_profiler_output_requires_main_display() {
+        let output = r#"
+Graphics/Displays:
+
+    Display:
+      Resolution: 2560 x 1440
+      Main Display: No
+"#;
+
+        let error = parse_main_display_width(output).unwrap_err();
+        assert!(error.contains("main display"));
+    }
 }

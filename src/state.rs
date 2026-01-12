@@ -24,7 +24,8 @@ pub(crate) fn read_state_file(path: &Path, dry_run: bool) -> Result<Option<State
 
     let contents = fs::read_to_string(path)
         .map_err(|error| format!("Failed to read state file {}: {error}", path.display()))?;
-    let parsed = parse_state_contents(&contents)?;
+    let parsed = parse_state_contents(&contents)
+        .map_err(|error| format!("Failed to parse state file {}: {error}", path.display()))?;
 
     if parsed.migrated && !dry_run {
         persist_state(path, &parsed.state)?;
@@ -145,6 +146,9 @@ pub(crate) fn missing_state_file_message(state_path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+
+    use tempfile::tempdir;
 
     #[test]
     fn parse_state_contents_handles_toml_and_legacy_integer() {
@@ -162,5 +166,67 @@ default = 50
         assert_eq!(legacy_state.state.current, Some(40));
         assert_eq!(legacy_state.state.default_percentage, Some(40));
         assert!(legacy_state.migrated);
+    }
+
+    #[test]
+    fn resolve_percentage_prefers_current_then_default() {
+        let state = StateLoad {
+            state: WorkspaceState {
+                current: Some(25),
+                default_percentage: Some(50),
+            },
+            migrated: false,
+        };
+
+        assert_eq!(
+            resolve_percentage(Some(10), Some(&state)).unwrap(),
+            Some(10)
+        );
+        assert_eq!(resolve_percentage(None, Some(&state)).unwrap(), Some(25));
+
+        let state = StateLoad {
+            state: WorkspaceState {
+                current: None,
+                default_percentage: Some(40),
+            },
+            migrated: false,
+        };
+
+        assert_eq!(resolve_percentage(None, Some(&state)).unwrap(), Some(40));
+        assert_eq!(resolve_percentage(None, None).unwrap(), None);
+    }
+
+    #[test]
+    fn write_state_preserves_existing_default() {
+        let temp_dir = tempdir().unwrap();
+        let path = temp_dir.path().join("state.toml");
+        let existing = WorkspaceState {
+            current: Some(55),
+            default_percentage: Some(70),
+        };
+
+        write_state(&path, 40, Some(existing), false).unwrap();
+
+        let contents = fs::read_to_string(&path).unwrap();
+        let parsed = parse_state_contents(&contents).unwrap();
+        assert_eq!(parsed.state.current, Some(40));
+        assert_eq!(parsed.state.default_percentage, Some(70));
+    }
+
+    #[test]
+    fn write_state_sets_default_when_missing() {
+        let temp_dir = tempdir().unwrap();
+        let path = temp_dir.path().join("state.toml");
+        let existing = WorkspaceState {
+            current: Some(30),
+            default_percentage: None,
+        };
+
+        write_state(&path, 35, Some(existing), false).unwrap();
+
+        let contents = fs::read_to_string(&path).unwrap();
+        let parsed = parse_state_contents(&contents).unwrap();
+        assert_eq!(parsed.state.current, Some(35));
+        assert_eq!(parsed.state.default_percentage, Some(35));
     }
 }

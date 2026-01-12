@@ -12,7 +12,12 @@ pub(crate) fn update_config(config_path: &Path, gap_size: i64) -> Result<(), Str
         .parse::<DocumentMut>()
         .map_err(|error| format!("Failed to parse TOML: {error}"))?;
 
-    update_gaps(&mut document, gap_size)?;
+    update_gaps(&mut document, gap_size).map_err(|error| {
+        format!(
+            "Failed to update gaps in {}: {error}",
+            config_path.display()
+        )
+    })?;
     write_atomic(config_path, document.to_string())?;
     Ok(())
 }
@@ -45,13 +50,17 @@ pub(crate) fn update_gap_side(
         _ => return Err(format!("gaps.outer.{side} is not an array in config")),
     };
 
-    let entry = array
-        .get_mut(1)
-        .ok_or_else(|| format!("gaps.outer.{side}[1] is missing in config"))?;
-
-    let table = match entry {
-        Value::InlineTable(table) => table,
-        _ => return Err(format!("gaps.outer.{side}[1] is not a table in config")),
+    let table = if let Some(table) = array.get_mut(1).and_then(Value::as_inline_table_mut) {
+        table
+    } else {
+        array
+            .iter_mut()
+            .find_map(Value::as_inline_table_mut)
+            .ok_or_else(|| {
+                format!(
+                    "gaps.outer.{side} has no inline tables; expected entries like {{ monitor.main = 0 }}"
+                )
+            })?
     };
 
     table.insert("monitor.main", Value::from(gap_size));
