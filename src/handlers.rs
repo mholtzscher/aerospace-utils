@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::cli::GlobalOptions;
-use crate::config::{read_main_gap_sizes, update_config};
+use crate::config::{MonitorGap, read_config_summary, update_config};
 use crate::state::{
     StateLoad, missing_state_file_message, read_state_file, resolve_percentage, write_state,
 };
@@ -69,21 +69,40 @@ fn build_size_plan(
     }))
 }
 
+fn print_gap_value(label: &str, value: Option<i64>) {
+    match value {
+        Some(value) => println!("{label}: {value}"),
+        None => println!("{label}: not set"),
+    }
+}
+
+fn print_monitor_gaps(label: &str, gaps: &[MonitorGap]) {
+    if gaps.is_empty() {
+        println!("{label}: not set");
+        return;
+    }
+
+    let list = gaps
+        .iter()
+        .map(|gap| format!("{}={}", gap.name, gap.value))
+        .collect::<Vec<_>>()
+        .join(", ");
+    println!("{label}: {list}");
+}
+
 pub(crate) fn handle_config(options: &GlobalOptions) -> Result<(), String> {
     let config_path = resolve_config_path(options)?;
     let state_path = resolve_state_path(options)?;
 
     println!("Config path: {}", config_path.display());
     if config_path.exists() {
-        let gaps = read_main_gap_sizes(&config_path)?;
-        match gaps.left {
-            Some(value) => println!("Left gap (monitor.main): {value}"),
-            None => println!("Left gap (monitor.main): not set"),
-        }
-        match gaps.right {
-            Some(value) => println!("Right gap (monitor.main): {value}"),
-            None => println!("Right gap (monitor.main): not set"),
-        }
+        let summary = read_config_summary(&config_path)?;
+        print_gap_value("Inner gap horizontal", summary.inner_horizontal);
+        print_gap_value("Inner gap vertical", summary.inner_vertical);
+        print_gap_value("Outer gap top", summary.outer_top);
+        print_gap_value("Outer gap bottom", summary.outer_bottom);
+        print_monitor_gaps("Left gaps", &summary.left_gaps);
+        print_monitor_gaps("Right gaps", &summary.right_gaps);
     } else {
         println!("Config file not found.");
     }
