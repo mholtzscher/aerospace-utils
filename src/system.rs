@@ -4,6 +4,12 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+#[cfg(target_os = "macos")]
+use std::convert::TryFrom;
+
+#[cfg(target_os = "macos")]
+use core_graphics::display::CGDisplay;
+
 pub(crate) fn ensure_macos(allow_non_macos: bool) -> Result<(), String> {
     validate_os(env::consts::OS, allow_non_macos)
 }
@@ -54,55 +60,15 @@ fn is_executable(path: &Path) -> bool {
     metadata.permissions().mode() & 0o111 != 0
 }
 
+#[cfg(target_os = "macos")]
 pub(crate) fn main_display_width() -> Result<i64, String> {
-    let output = Command::new("system_profiler")
-        .arg("SPDisplaysDataType")
-        .output()
-        .map_err(|error| format!("Failed to run system_profiler: {error}"))?;
-
-    if !output.status.success() {
-        return Err("system_profiler failed to run".to_string());
-    }
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    parse_main_display_width(&stdout)
+    let width = CGDisplay::main().pixels_wide();
+    i64::try_from(width).map_err(|_| "Main display width is too large to fit in i64".to_string())
 }
 
-fn parse_main_display_width(output: &str) -> Result<i64, String> {
-    let lines = output.lines().collect::<Vec<_>>();
-    let mut resolution_line = None;
-
-    for (index, line) in lines.iter().enumerate() {
-        if line.contains("Main Display: Yes") {
-            for candidate in lines[..=index].iter().rev() {
-                if candidate.contains("Resolution:") {
-                    resolution_line = Some(*candidate);
-                    break;
-                }
-            }
-            break;
-        }
-    }
-
-    let resolution_line = resolution_line.ok_or_else(|| {
-        "Unable to locate main display resolution in system_profiler output".to_string()
-    })?;
-
-    let after_label = resolution_line
-        .split_once("Resolution:")
-        .map(|(_, value)| value)
-        .ok_or_else(|| "Malformed resolution line".to_string())?
-        .trim();
-
-    let width_part = after_label
-        .split('x')
-        .next()
-        .ok_or_else(|| "Malformed resolution line".to_string())?
-        .trim();
-
-    width_part
-        .parse::<i64>()
-        .map_err(|error| format!("Failed to parse monitor width: {error}"))
+#[cfg(not(target_os = "macos"))]
+pub(crate) fn main_display_width() -> Result<i64, String> {
+    Err("Unable to detect monitor width on non-macOS.".to_string())
 }
 
 pub(crate) fn reload_aerospace_config(aerospace_path: &Path) -> Result<(), String> {
@@ -128,50 +94,11 @@ pub(crate) fn reload_aerospace_config(aerospace_path: &Path) -> Result<(), Strin
 mod tests {
     use super::*;
 
+    #[cfg(not(target_os = "macos"))]
     #[test]
-    fn parse_system_profiler_output_extracts_width() {
-        let output = r#"
-Graphics/Displays:
-
-    Display:
-      Resolution: 3456 x 2234 Retina
-      Main Display: Yes
-"#;
-
-        let width = parse_main_display_width(output).unwrap();
-        assert_eq!(width, 3456);
-    }
-
-    #[test]
-    fn parse_system_profiler_output_selects_main_display() {
-        let output = r#"
-Graphics/Displays:
-
-    Studio Display:
-      Resolution: 5120 x 2880 Retina
-      Main Display: No
-
-    Built-In Display:
-      Resolution: 3456 x 2234 Retina
-      Main Display: Yes
-"#;
-
-        let width = parse_main_display_width(output).unwrap();
-        assert_eq!(width, 3456);
-    }
-
-    #[test]
-    fn parse_system_profiler_output_requires_main_display() {
-        let output = r#"
- Graphics/Displays:
- 
-     Display:
-       Resolution: 2560 x 1440
-       Main Display: No
- "#;
-
-        let error = parse_main_display_width(output).unwrap_err();
-        assert!(error.contains("main display"));
+    fn main_display_width_requires_override_on_non_macos() {
+        let error = main_display_width().unwrap_err();
+        assert!(error.contains("non-macOS"));
     }
 
     #[test]

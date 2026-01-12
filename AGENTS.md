@@ -26,7 +26,7 @@ nix develop -c cargo run -- <args>            # run locally
 
 # Test
 nix develop -c cargo test                     # all tests
-nix develop -c cargo test parses_system_profiler_output  # single test
+nix develop -c cargo test validate_os_blocks_non_macos_without_override  # single test
 nix develop -c cargo test tests::gap_calculation_rounds  # module test
 nix develop -c cargo test -- --nocapture      # with output
 
@@ -111,7 +111,7 @@ Order: std -> external crates -> local modules, separated by blank lines. Avoid 
 ## Platform Notes
 
 - Tool is macOS-only (`ensure_macos`).
-- `system_profiler` is required for monitor detection.
+- Monitor detection uses CoreGraphics on macOS.
 - `aerospace` binary must exist in `PATH`.
 
 ## Dependency Updates

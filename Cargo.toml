@@ -8,3 +8,6 @@ clap = { version = "4.5.54", features = ["derive"] }
 dirs = "5.0.1"
 tempfile = "3.12.0"
 toml_edit = "0.22.27"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-graphics = "0.25.0"
