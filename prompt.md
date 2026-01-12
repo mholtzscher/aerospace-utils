@@ -5,8 +5,8 @@ You are an expert Rust CLI engineer. Recreate the AeroSpace â€œworkspace sizingâ
 ## What to implement
 Implement a Rust CLI binary named `aerospace-utils` with two subcommands matching the Nushell behavior:
 
-- `aerospace-utils size [PERCENT]`
-- `aerospace-utils adjust [AMOUNT]` (default `AMOUNT=5`, supports negative)
+- `aerospace-utils gaps use [PERCENT]`
+- `aerospace-utils gaps adjust [AMOUNT]` (default `AMOUNT=5`, supports negative)
 
 ## Exact TOML structure to support (important)
 The config file contains (template):
@@ -49,25 +49,25 @@ default = 40
 ```
 
 Read semantics:
-- When running `aerospace-utils size` with no `PERCENT` argument:
+- When running `aerospace-utils gaps use` with no `PERCENT` argument:
   - If TOML exists and has `current`, use `current`.
   - If `current` is missing/null, fall back to `default`.
   - If the state file does not exist: print info `No percentage provided and no saved percentage file found` and exit 0.
 
 Write semantics:
-- `size PERCENT`: update `current = PERCENT`.
-- `adjust AMOUNT`: load `current`, compute `new = current + AMOUNT`, then set `current = new`.
+- `gaps use PERCENT`: update `current = PERCENT`.
+- `gaps adjust AMOUNT`: load `current`, compute `new = current + AMOUNT`, then set `current = new`.
 - `default` is **not** automatically changed when `current` changes.
 
 Default management:
-- Add a flag on `size`: `--set-default`.
-  - When provided with `size PERCENT`, also set `default = PERCENT`.
+- Add a flag on `gaps use`: `--set-default`.
+  - When provided with `gaps use PERCENT`, also set `default = PERCENT`.
 
 Migration:
 - If the state file exists but contains a legacy plain integer like `40` (not TOML): treat that value as both `current` and `default`, then rewrite the file as TOML (atomically).
 
 ## Behavior to match (from Nushell)
-### `size`
+### `gaps use`
 - Require `aerospace` binary in PATH; if missing, exit 1.
 - Determine `percentage`:
   - If CLI arg provided: use it.
@@ -91,13 +91,13 @@ Migration:
   - If reload fails: warn but still exit 0 (config changes should remain).
   - If reload succeeds: print `Completed.` and exit 0.
 
-### `adjust`
+### `gaps adjust`
 - Require that the state file exists; if not, exit 1 with:
   - error about missing file
-  - info telling user to run `size <percentage>` first
+  - info telling user to run `gaps use <percentage>` first
 - Read `current`, compute `new = current + amount`, validate 1..=100 else exit 1.
 - Print adjustment info.
-- Call the same logic as `size new` (and update `current` accordingly).
+- Call the same logic as `gaps use new` (and update `current` accordingly).
 
 ## CLI options
 Add:
@@ -137,6 +137,6 @@ Output complete code for:
 Also include a short run guide:
 
 - `cargo build`
-- Examples: `aerospace-utils size 40`, `aerospace-utils adjust -5`, `aerospace-utils size` (uses saved)
+- Examples: `aerospace-utils gaps use 40`, `aerospace-utils gaps adjust -5`, `aerospace-utils gaps use` (uses saved)
 
 Do not implement unrelated commands or features.

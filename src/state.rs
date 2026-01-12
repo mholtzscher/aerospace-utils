@@ -138,7 +138,7 @@ pub(crate) fn persist_state(path: &Path, state: &WorkspaceState) -> Result<(), S
 
 pub(crate) fn missing_state_file_message(state_path: &Path) -> String {
     format!(
-        "State file not found at {}.\nRun `aerospace-utils size <percentage>` first.",
+        "State file not found at {}.\nRun `aerospace-utils gaps use <percentage>` first.",
         state_path.display()
     )
 }

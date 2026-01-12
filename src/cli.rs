@@ -1,18 +1,25 @@
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand};
+use clap::{Args as ClapArgs, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(version, about = "Utilities for adjusting Aerospace workspace sizing")]
 pub(crate) struct Args {
-    #[command(flatten)]
-    pub(crate) options: GlobalOptions,
     #[command(subcommand)]
     pub(crate) command: Commands,
 }
 
-#[derive(Parser, Debug)]
-pub(crate) struct GlobalOptions {
+#[derive(ClapArgs, Debug)]
+#[command(subcommand_required = true, arg_required_else_help = true)]
+pub(crate) struct GapsArgs {
+    #[command(flatten)]
+    pub(crate) options: CommonOptions,
+    #[command(subcommand)]
+    pub(crate) command: GapsCommands,
+}
+
+#[derive(ClapArgs, Debug)]
+pub(crate) struct CommonOptions {
     /// Path to aerospace.toml
     #[arg(long, global = true)]
     pub(crate) config_path: Option<PathBuf>,
@@ -28,9 +35,6 @@ pub(crate) struct GlobalOptions {
     /// Print verbose output
     #[arg(short, long, global = true)]
     pub(crate) verbose: bool,
-    /// Allow running on non-macOS
-    #[arg(long, hide = true, global = true)]
-    pub(crate) allow_non_macos: bool,
     /// Override detected monitor width
     #[arg(long, hide = true, value_name = "PX", global = true)]
     pub(crate) monitor_width: Option<i64>,
@@ -38,8 +42,14 @@ pub(crate) struct GlobalOptions {
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum Commands {
+    /// Manage Aerospace workspace gaps
+    Gaps(GapsArgs),
+}
+
+#[derive(Subcommand, Debug)]
+pub(crate) enum GapsCommands {
     /// Set workspace size percentage
-    Size {
+    Use {
         /// Workspace percentage
         percent: Option<i64>,
         /// Also set default percentage
@@ -53,5 +63,5 @@ pub(crate) enum Commands {
         amount: i64,
     },
     /// Show resolved config and state
-    Config,
+    Current,
 }

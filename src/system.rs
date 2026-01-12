@@ -10,22 +10,6 @@ use std::convert::TryFrom;
 #[cfg(target_os = "macos")]
 use core_graphics::display::CGDisplay;
 
-pub(crate) fn ensure_macos(allow_non_macos: bool) -> Result<(), String> {
-    validate_os(env::consts::OS, allow_non_macos)
-}
-
-pub(crate) fn is_macos(os: &str) -> bool {
-    os == "macos"
-}
-
-fn validate_os(os: &str, allow_non_macos: bool) -> Result<(), String> {
-    if is_macos(os) || allow_non_macos {
-        Ok(())
-    } else {
-        Err("aerospace-utils only supports macOS.".to_string())
-    }
-}
-
 pub(crate) fn require_aerospace_executable() -> Result<PathBuf, String> {
     find_aerospace_executable().ok_or_else(|| "aerospace not found in PATH".to_string())
 }
@@ -99,23 +83,5 @@ mod tests {
     fn main_display_width_requires_override_on_non_macos() {
         let error = main_display_width().unwrap_err();
         assert!(error.contains("non-macOS"));
-    }
-
-    #[test]
-    fn validate_os_blocks_non_macos_without_override() {
-        let error = validate_os("linux", false).unwrap_err();
-        assert!(error.contains("macOS"));
-    }
-
-    #[test]
-    fn validate_os_allows_non_macos_with_override() {
-        let result = validate_os("linux", true);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn validate_os_allows_macos_without_override() {
-        let result = validate_os("macos", false);
-        assert!(result.is_ok());
     }
 }
