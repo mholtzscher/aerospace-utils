@@ -1,22 +1,32 @@
 use clap::Parser;
 
-/// Simple program to greet a person
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    /// Name of the person to greet
-    #[arg(short, long)]
-    name: String,
+mod cli;
+mod config;
+mod handlers;
+mod state;
+mod system;
+mod util;
 
-    /// Number of times to greet
-    #[arg(short, long, default_value_t = 1)]
-    count: u8,
-}
+use crate::cli::{Args, Commands};
+use crate::handlers::{handle_adjust, handle_size};
+use crate::system::ensure_macos;
 
 fn main() {
-    let args = Args::parse();
+    if let Err(message) = run() {
+        eprintln!("{message}");
+        std::process::exit(1);
+    }
+}
 
-    for _ in 0..args.count {
-        println!("Hello {}!", args.name);
+fn run() -> Result<(), String> {
+    ensure_macos()?;
+
+    let args = Args::parse();
+    match args.command {
+        Commands::Size {
+            percent,
+            set_default,
+        } => handle_size(&args.options, percent, set_default),
+        Commands::Adjust { amount } => handle_adjust(&args.options, amount),
     }
 }
