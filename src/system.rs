@@ -4,8 +4,16 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-pub(crate) fn ensure_macos() -> Result<(), String> {
-    if env::consts::OS == "macos" {
+pub(crate) fn ensure_macos(allow_non_macos: bool) -> Result<(), String> {
+    validate_os(env::consts::OS, allow_non_macos)
+}
+
+pub(crate) fn is_macos(os: &str) -> bool {
+    os == "macos"
+}
+
+fn validate_os(os: &str, allow_non_macos: bool) -> Result<(), String> {
+    if is_macos(os) || allow_non_macos {
         Ok(())
     } else {
         Err("aerospace-utils only supports macOS.".to_string())
@@ -155,14 +163,32 @@ Graphics/Displays:
     #[test]
     fn parse_system_profiler_output_requires_main_display() {
         let output = r#"
-Graphics/Displays:
-
-    Display:
-      Resolution: 2560 x 1440
-      Main Display: No
-"#;
+ Graphics/Displays:
+ 
+     Display:
+       Resolution: 2560 x 1440
+       Main Display: No
+ "#;
 
         let error = parse_main_display_width(output).unwrap_err();
         assert!(error.contains("main display"));
+    }
+
+    #[test]
+    fn validate_os_blocks_non_macos_without_override() {
+        let error = validate_os("linux", false).unwrap_err();
+        assert!(error.contains("macOS"));
+    }
+
+    #[test]
+    fn validate_os_allows_non_macos_with_override() {
+        let result = validate_os("linux", true);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn validate_os_allows_macos_without_override() {
+        let result = validate_os("macos", false);
+        assert!(result.is_ok());
     }
 }

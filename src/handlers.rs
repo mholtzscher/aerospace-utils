@@ -24,6 +24,24 @@ struct SizePlan {
     state_load: Option<StateLoad>,
 }
 
+fn resolve_monitor_width(options: &GlobalOptions) -> Result<i64, String> {
+    match options.monitor_width {
+        Some(monitor_width) => {
+            if monitor_width <= 0 {
+                return Err("Monitor width must be positive.".to_string());
+            }
+            Ok(monitor_width)
+        }
+        None => main_display_width().map_err(|error| {
+            if options.allow_non_macos {
+                format!("{error}\nHint: use --monitor-width to override on non-macOS.")
+            } else {
+                error
+            }
+        }),
+    }
+}
+
 fn build_size_plan(
     options: &GlobalOptions,
     percent: Option<i64>,
@@ -38,7 +56,7 @@ fn build_size_plan(
     };
 
     validate_percentage(percentage)?;
-    let monitor_width = main_display_width()?;
+    let monitor_width = resolve_monitor_width(options)?;
     let gap_size = calculate_gap_size(monitor_width, percentage);
 
     Ok(SizePlanResult::Ready(SizePlan {
@@ -56,7 +74,11 @@ pub(crate) fn handle_size(
     percent: Option<i64>,
     set_default: bool,
 ) -> Result<(), String> {
-    let aerospace_path = require_aerospace_executable()?;
+    let aerospace_path = if options.dry_run || options.no_reload {
+        None
+    } else {
+        Some(require_aerospace_executable()?)
+    };
     let plan = build_size_plan(options, percent)?;
     let plan = match plan {
         SizePlanResult::MissingPercentage { state_path } => {
@@ -98,7 +120,7 @@ pub(crate) fn handle_size(
         set_default,
     )?;
 
-    if !options.no_reload
+    if let Some(aerospace_path) = aerospace_path
         && let Err(message) = reload_aerospace_config(&aerospace_path)
     {
         eprintln!("Warning: {message}");
@@ -127,4 +149,40 @@ pub(crate) fn handle_adjust(options: &GlobalOptions, amount: i64) -> Result<(), 
     println!("Adjusting saved percentage {current} by {amount} to {new_percentage}.");
 
     handle_size(options, Some(new_percentage), false)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::cli::GlobalOptions;
+
+    fn default_options() -> GlobalOptions {
+        GlobalOptions {
+            config_path: None,
+            state_path: None,
+            no_reload: false,
+            dry_run: false,
+            verbose: false,
+            allow_non_macos: false,
+            monitor_width: None,
+        }
+    }
+
+    #[test]
+    fn resolve_monitor_width_uses_override() {
+        let mut options = default_options();
+        options.monitor_width = Some(1800);
+
+        let monitor_width = resolve_monitor_width(&options).unwrap();
+        assert_eq!(monitor_width, 1800);
+    }
+
+    #[test]
+    fn resolve_monitor_width_rejects_non_positive() {
+        let mut options = default_options();
+        options.monitor_width = Some(0);
+
+        let error = resolve_monitor_width(&options).unwrap_err();
+        assert!(error.contains("positive"));
+    }
 }

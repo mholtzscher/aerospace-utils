@@ -1,3 +1,5 @@
+use std::env;
+
 use clap::Parser;
 
 mod cli;
@@ -9,7 +11,7 @@ mod util;
 
 use crate::cli::{Args, Commands};
 use crate::handlers::{handle_adjust, handle_size};
-use crate::system::ensure_macos;
+use crate::system::{ensure_macos, is_macos};
 
 fn main() {
     if let Err(message) = run() {
@@ -19,9 +21,13 @@ fn main() {
 }
 
 fn run() -> Result<(), String> {
-    ensure_macos()?;
-
     let args = Args::parse();
+    ensure_macos(args.options.allow_non_macos)?;
+
+    if args.options.allow_non_macos && !is_macos(env::consts::OS) {
+        eprintln!("Warning: running on non-macOS is unsupported.");
+    }
+
     match args.command {
         Commands::Size {
             percent,

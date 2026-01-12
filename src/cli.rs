@@ -1,5 +1,6 @@
-use clap::{Parser, Subcommand};
 use std::path::PathBuf;
+
+use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(version, about = "Utilities for adjusting Aerospace workspace sizing")]
@@ -13,20 +14,26 @@ pub(crate) struct Args {
 #[derive(Parser, Debug)]
 pub(crate) struct GlobalOptions {
     /// Path to aerospace.toml
-    #[arg(long)]
+    #[arg(long, global = true)]
     pub(crate) config_path: Option<PathBuf>,
     /// Path to workspace-size.toml
-    #[arg(long)]
+    #[arg(long, global = true)]
     pub(crate) state_path: Option<PathBuf>,
     /// Skip reload-config
-    #[arg(long)]
+    #[arg(long, global = true)]
     pub(crate) no_reload: bool,
     /// Print actions without writing
-    #[arg(long)]
+    #[arg(long, global = true)]
     pub(crate) dry_run: bool,
     /// Print verbose output
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     pub(crate) verbose: bool,
+    /// Allow running on non-macOS
+    #[arg(long, hide = true, global = true)]
+    pub(crate) allow_non_macos: bool,
+    /// Override detected monitor width
+    #[arg(long, hide = true, value_name = "PX", global = true)]
+    pub(crate) monitor_width: Option<i64>,
 }
 
 #[derive(Subcommand, Debug)]
