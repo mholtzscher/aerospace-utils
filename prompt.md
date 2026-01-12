@@ -36,19 +36,21 @@ Do NOT modify:
 
 If `outer.left/right` or index `1` is missing or not a table, return an error (exit 1) with a clear message.
 
-## Saved state file (JSON)
-Replace the original plain-text percentage file with a JSON “state file” storing both current and default percentages.
+## Saved state file (TOML)
+Replace the original plain-text percentage file with a TOML “state file” storing both current and default percentages.
 
-- Default location: `~/.config/aerospace/workspace-size.json`
-- JSON schema:
+- Default location: `~/.config/aerospace/workspace-size.toml`
+- TOML schema:
 
-```json
-{ "current": 40, "default": 40 }
+```toml
+[workspace]
+current = 40
+default = 40
 ```
 
 Read semantics:
 - When running `aerospace-utils size` with no `PERCENT` argument:
-  - If JSON exists and has `current`, use `current`.
+  - If TOML exists and has `current`, use `current`.
   - If `current` is missing/null, fall back to `default`.
   - If the state file does not exist: print info `No percentage provided and no saved percentage file found` and exit 0.
 
@@ -62,14 +64,14 @@ Default management:
   - When provided with `size PERCENT`, also set `default = PERCENT`.
 
 Migration:
-- If the state file exists but contains a legacy plain integer like `40` (not JSON): treat that value as both `current` and `default`, then rewrite the file as JSON (atomically).
+- If the state file exists but contains a legacy plain integer like `40` (not TOML): treat that value as both `current` and `default`, then rewrite the file as TOML (atomically).
 
 ## Behavior to match (from Nushell)
 ### `size`
 - Require `aerospace` binary in PATH; if missing, exit 1.
 - Determine `percentage`:
   - If CLI arg provided: use it.
-  - Else: load from JSON state file as described above.
+  - Else: load from TOML state file as described above.
 - Validate `percentage` is 1..=100 else exit 1.
 - On macOS: run `system_profiler SPDisplaysDataType` and parse main monitor width:
   - Find the line containing `Main Display: Yes`
@@ -82,7 +84,7 @@ Migration:
 - Edit config TOML at `~/.config/aerospace/aerospace.toml` and set both:
   - `gaps.outer.right[1].monitor.main = gap_size`
   - `gaps.outer.left[1].monitor.main = gap_size`
-- Persist JSON state:
+- Persist TOML state:
   - Always write `current = percentage`.
   - If `--set-default` is passed, also write `default = percentage`.
 - Run `aerospace reload-config`:
@@ -101,7 +103,7 @@ Migration:
 Add:
 
 - `--config-path <PATH>` default `~/.config/aerospace/aerospace.toml`
-- `--state-path <PATH>` default `~/.config/aerospace/workspace-size.json`
+- `--state-path <PATH>` default `~/.config/aerospace/workspace-size.toml`
 - `--no-reload`
 - `--dry-run` (do not write files; just print what would change)
 - `-v/--verbose`
@@ -114,7 +116,7 @@ Add:
 - Use `clap` for CLI.
 - Use `toml_edit` to modify TOML without rewriting unrelated structure.
 - Expand `~` to home directory.
-- Use atomic writes (temp file + rename) for both the config and JSON state file.
+- Use atomic writes (temp file + rename) for both the config and TOML state file.
 - Use `std::process::Command` for external commands.
 - Exit codes: 1 for errors/validation; reload failure is not fatal (exit 0).
 
@@ -124,7 +126,7 @@ Include unit tests for:
 - Parsing a sample `system_profiler` output to extract width
 - Gap calculation rounding
 - Editing a TOML string that matches the exact `outer.left/right` array shape and verifying only `[1].monitor.main` changes
-- JSON state parsing + legacy integer migration
+- TOML state parsing + legacy integer migration
 
 ## Deliverable
 Output complete code for:
