@@ -10,7 +10,7 @@ mod system;
 mod util;
 
 use crate::cli::{Args, Commands};
-use crate::handlers::{handle_adjust, handle_size};
+use crate::handlers::{handle_adjust, handle_config, handle_size};
 use crate::system::{ensure_macos, is_macos};
 
 fn main() {
@@ -34,5 +34,6 @@ fn run() -> Result<(), String> {
             set_default,
         } => handle_size(&args.options, percent, set_default),
         Commands::Adjust { amount } => handle_adjust(&args.options, amount),
+        Commands::Config => handle_config(&args.options),
     }
 }

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::cli::GlobalOptions;
-use crate::config::update_config;
+use crate::config::{read_main_gap_sizes, update_config};
 use crate::state::{
     StateLoad, missing_state_file_message, read_state_file, resolve_percentage, write_state,
 };
@@ -67,6 +67,48 @@ fn build_size_plan(
         gap_size,
         state_load,
     }))
+}
+
+pub(crate) fn handle_config(options: &GlobalOptions) -> Result<(), String> {
+    let config_path = resolve_config_path(options)?;
+    let state_path = resolve_state_path(options)?;
+
+    println!("Config path: {}", config_path.display());
+    if config_path.exists() {
+        let gaps = read_main_gap_sizes(&config_path)?;
+        match gaps.left {
+            Some(value) => println!("Left gap (monitor.main): {value}"),
+            None => println!("Left gap (monitor.main): not set"),
+        }
+        match gaps.right {
+            Some(value) => println!("Right gap (monitor.main): {value}"),
+            None => println!("Right gap (monitor.main): not set"),
+        }
+    } else {
+        println!("Config file not found.");
+    }
+
+    println!("State path: {}", state_path.display());
+    let state_load = read_state_file(&state_path, true)?;
+    match state_load {
+        Some(load) => {
+            let current = load
+                .state
+                .current
+                .map(|value| value.to_string())
+                .unwrap_or_else(|| "not set".to_string());
+            let default_percentage = load
+                .state
+                .default_percentage
+                .map(|value| value.to_string())
+                .unwrap_or_else(|| "not set".to_string());
+            println!("Current percentage: {current}");
+            println!("Default percentage: {default_percentage}");
+        }
+        None => println!("State file not found."),
+    }
+
+    Ok(())
 }
 
 pub(crate) fn handle_size(

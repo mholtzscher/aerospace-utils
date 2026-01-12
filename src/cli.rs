@@ -52,4 +52,6 @@ pub(crate) enum Commands {
         #[arg(default_value_t = 5)]
         amount: i64,
     },
+    /// Show resolved config and state
+    Config,
 }
