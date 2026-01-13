@@ -1,11 +1,12 @@
 use clap::Parser;
 
+mod aerospace;
 mod cli;
 mod config;
+mod display;
 mod gaps;
 mod output;
 mod state;
-mod system;
 mod util;
 
 use crate::cli::{Args, Commands, GapsCommands};

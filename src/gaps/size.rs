@@ -2,12 +2,13 @@ use std::path::PathBuf;
 
 use colored::ColoredString;
 
+use crate::aerospace::resolve_binary;
 use crate::cli::CommonOptions;
 use crate::config::update_config;
+use crate::display::main_display_width;
 use crate::gaps::{calculate_gap_size, validate_percentage};
 use crate::output;
 use crate::state::{StateLoad, read_state_file, resolve_percentage, write_state};
-use crate::system::{main_display_width, reload_aerospace_config, require_aerospace_executable};
 use crate::util::{resolve_config_path, resolve_state_path};
 
 enum SizePlanResult {
@@ -122,8 +123,8 @@ fn execute_plan(
     let reload_status = if no_reload {
         ReloadStatus::Skipped
     } else {
-        let aerospace_path = require_aerospace_executable()?;
-        match reload_aerospace_config(&aerospace_path) {
+        let aerospace = resolve_binary()?;
+        match aerospace.reload() {
             Ok(()) => ReloadStatus::Ok,
             Err(message) => {
                 eprintln!("Warning: {message}");
