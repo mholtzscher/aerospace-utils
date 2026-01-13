@@ -26,17 +26,23 @@
           overlays = [ gomod2nix.overlays.default ];
         };
 
+        version = "0.2.0";
+
         # macOS-specific build inputs for CoreGraphics CGO bindings
-        darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
-          pkgs.darwin.apple_sdk.frameworks.CoreGraphics
-          pkgs.darwin.apple_sdk.frameworks.IOKit
-          pkgs.darwin.apple_sdk.frameworks.CoreFoundation
-        ];
+        # Use SDK 11.0 for compatibility with modern macOS
+        darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin (
+          with pkgs.darwin.apple_sdk_11_0.frameworks;
+          [
+            CoreGraphics
+            IOKit
+            CoreFoundation
+          ]
+        );
       in
       {
         packages.default = pkgs.buildGoApplication {
           pname = "aerospace-utils";
-          version = "0.2.0";
+          inherit version;
           src = ./.;
           modules = ./gomod2nix.toml;
 
@@ -48,24 +54,17 @@
           ldflags = [
             "-s"
             "-w"
-            "-X github.com/mholtzscher/aerospace-utils/cmd.Version=0.2.0"
+            "-X github.com/mholtzscher/aerospace-utils/cmd.Version=${version}"
           ];
 
           meta = with pkgs.lib; {
             description = "CLI for managing Aerospace workspace gaps";
             homepage = "https://github.com/mholtzscher/aerospace-utils";
             license = licenses.mit;
-            maintainers = [ ];
             mainProgram = "aerospace-utils";
             platforms = platforms.darwin ++ platforms.linux;
           };
         };
-
-        apps.default = flake-utils.lib.mkApp {
-          drv = self.packages.${system}.default;
-        };
-
-        checks.default = self.packages.${system}.default;
 
         formatter = pkgs.nixfmt-rfc-style;
 
