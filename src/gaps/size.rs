@@ -88,6 +88,7 @@ fn execute_plan(
     set_default: bool,
     verbose: bool,
     dry_run: bool,
+    no_reload: bool,
 ) -> Result<(), String> {
     if verbose {
         println!("Config path: {}", plan.config_path.display());
@@ -109,7 +110,7 @@ fn execute_plan(
         set_default,
     )?;
 
-    let aerospace_path = resolve_aerospace_path(dry_run, false)?;
+    let aerospace_path = resolve_aerospace_path(dry_run, no_reload)?;
     if let Some(path) = aerospace_path
         && let Err(message) = reload_aerospace_config(&path)
     {
@@ -137,7 +138,13 @@ pub(crate) fn handle_size(
         }
     };
 
-    execute_plan(&plan, set_default, options.verbose, options.dry_run)
+    execute_plan(
+        &plan,
+        set_default,
+        options.verbose,
+        options.dry_run,
+        options.no_reload,
+    )
 }
 
 #[cfg(test)]
