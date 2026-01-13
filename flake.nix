@@ -4,6 +4,11 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    gomod2nix = {
+      url = "github:nix-community/gomod2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+    };
   };
 
   outputs =
@@ -11,11 +16,15 @@
       self,
       nixpkgs,
       flake-utils,
+      gomod2nix,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ gomod2nix.overlays.default ];
+        };
 
         # macOS-specific build inputs for CoreGraphics CGO bindings
         darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
@@ -25,17 +34,16 @@
         ];
       in
       {
-        packages.default = pkgs.buildGoModule {
+        packages.default = pkgs.buildGoApplication {
           pname = "aerospace-utils";
           version = "0.2.0";
           src = ./.;
-
-          vendorHash = null;
-
-          # CGO required for CoreGraphics display detection on macOS
-          CGO_ENABLED = "1";
+          modules = ./gomod2nix.toml;
 
           buildInputs = darwinBuildInputs;
+
+          # CGO required for CoreGraphics display detection on macOS
+          CGO_ENABLED = 1;
 
           ldflags = [
             "-s"
@@ -49,7 +57,7 @@
             license = licenses.mit;
             maintainers = [ ];
             mainProgram = "aerospace-utils";
-            platforms = platforms.darwin;
+            platforms = platforms.darwin ++ platforms.linux;
           };
         };
 
@@ -63,10 +71,11 @@
 
         devShells.default = pkgs.mkShell {
           buildInputs = [
-            pkgs.go_1_26
+            pkgs.go
             pkgs.gopls
             pkgs.golangci-lint
             pkgs.gotools
+            pkgs.gomod2nix
           ]
           ++ darwinBuildInputs;
 
@@ -75,7 +84,7 @@
 
         devShells.ci = pkgs.mkShell {
           buildInputs = [
-            pkgs.go_1_22
+            pkgs.go
             pkgs.golangci-lint
           ]
           ++ darwinBuildInputs;
