@@ -30,7 +30,7 @@
 
         # macOS-specific build inputs for CoreGraphics CGO bindings
         darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin (
-          with pkgs.apple_sdk.frameworks;
+          with pkgs.apple-sdk.frameworks;
           [
             CoreGraphics
             IOKit
