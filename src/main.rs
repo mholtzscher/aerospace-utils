@@ -3,12 +3,13 @@ use clap::Parser;
 mod cli;
 mod config;
 mod gaps;
+mod output;
 mod state;
 mod system;
 mod util;
 
 use crate::cli::{Args, Commands, GapsCommands};
-use crate::gaps::{handle_adjust, handle_config, handle_use};
+use crate::gaps::{handle_adjust, handle_current, handle_use};
 
 fn main() {
     if let Err(message) = run() {
@@ -27,7 +28,7 @@ fn run() -> Result<(), String> {
                 set_default,
             } => handle_use(&gaps.options, percent, set_default),
             GapsCommands::Adjust { amount } => handle_adjust(&gaps.options, amount),
-            GapsCommands::Current => handle_config(&gaps.options),
+            GapsCommands::Current => handle_current(&gaps.options),
         },
     }
 }

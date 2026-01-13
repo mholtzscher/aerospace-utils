@@ -47,7 +47,18 @@ If you are not using Nix, run the same `cargo` commands directly.
 
 ```
 src/
-  main.rs          # CLI entry + all logic + tests
+  main.rs          # CLI entry + command dispatch
+  cli.rs           # CLI argument definitions (clap)
+  config.rs        # Aerospace TOML config handling
+  state.rs         # Workspace state persistence
+  system.rs        # System/OS interactions
+  util.rs          # Path utilities, atomic writes
+  output.rs        # Shared output formatting helpers
+  gaps/            # Gaps command handlers
+    mod.rs         # Gap calculations, validation
+    adjust.rs      # 'gaps adjust' handler
+    current.rs     # 'gaps current' handler
+    size.rs        # 'gaps use' handler
 ```
 
 ## Code Style
@@ -98,7 +109,7 @@ Order: std -> external crates -> local modules, separated by blank lines. Avoid 
 
 ### Testing
 
-- Unit tests live in `mod tests` within `src/main.rs`.
+- Unit tests live in `mod tests` within each module.
 - Use descriptive test names and inline fixtures.
 - Prefer exact assertions on values and types.
 - Avoid `#[ignore]` unless strictly necessary.

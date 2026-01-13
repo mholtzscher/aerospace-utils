@@ -1,9 +1,9 @@
 pub(crate) mod adjust;
-pub(crate) mod config;
+pub(crate) mod current;
 pub(crate) mod size;
 
 pub(crate) use adjust::handle_adjust;
-pub(crate) use config::handle_config;
+pub(crate) use current::handle_current;
 pub(crate) use size::handle_use;
 
 pub(crate) fn validate_percentage(percentage: i64) -> Result<(), String> {

@@ -1,10 +1,11 @@
-use std::{io::IsTerminal, path::PathBuf};
+use std::path::PathBuf;
 
-use colored::Colorize;
+use colored::ColoredString;
 
 use crate::cli::CommonOptions;
 use crate::config::update_config;
 use crate::gaps::{calculate_gap_size, validate_percentage};
+use crate::output;
 use crate::state::{StateLoad, read_state_file, resolve_percentage, write_state};
 use crate::system::{main_display_width, reload_aerospace_config, require_aerospace_executable};
 use crate::util::{resolve_config_path, resolve_state_path};
@@ -24,25 +25,17 @@ pub(crate) struct SizePlan {
     pub(crate) state_load: Option<StateLoad>,
 }
 
-fn should_colorize(options: &CommonOptions) -> bool {
-    std::io::stdout().is_terminal() && !options.no_color && std::env::var_os("NO_COLOR").is_none()
-}
-
-fn value_text(value: impl ToString) -> colored::ColoredString {
-    value.to_string().green()
-}
-
 enum ReloadStatus {
     Skipped,
     Ok,
     Failed,
 }
 
-fn reload_status_text(status: ReloadStatus) -> colored::ColoredString {
+fn reload_status_text(status: ReloadStatus) -> ColoredString {
     match status {
-        ReloadStatus::Skipped => "reload skipped".yellow(),
-        ReloadStatus::Ok => "reload ok".green(),
-        ReloadStatus::Failed => "reload failed".red(),
+        ReloadStatus::Skipped => output::reload_skipped(),
+        ReloadStatus::Ok => output::reload_ok(),
+        ReloadStatus::Failed => output::reload_failed(),
     }
 }
 
@@ -145,9 +138,9 @@ fn execute_plan(
 
     println!(
         "Gaps set to {} (from {} of {}) ({}).",
-        value_text(plan.gap_size),
-        value_text(format!("{}%", plan.percentage)),
-        value_text(format!("{}px", plan.monitor_width)),
+        output::value(plan.gap_size),
+        output::value(format!("{}%", plan.percentage)),
+        output::value(format!("{}px", plan.monitor_width)),
         reload_status_text(reload_status)
     );
     Ok(())
@@ -158,7 +151,7 @@ pub(crate) fn handle_use(
     percent: Option<i64>,
     set_default: bool,
 ) -> Result<(), String> {
-    colored::control::set_override(should_colorize(options));
+    output::configure(options);
 
     let plan = match build_use_plan(options, percent)? {
         SizePlanResult::Ready(plan) => plan,
