@@ -182,6 +182,30 @@ pub(crate) fn update_gap_side(
             })?
     };
 
+    update_monitor_entry(table, gap_size)
+}
+
+fn update_monitor_entry(table: &mut InlineTable, gap_size: i64) -> Result<(), String> {
+    if let Some(value) = table.get_mut("monitor") {
+        let inner_table = value
+            .as_inline_table_mut()
+            .ok_or_else(|| "monitor entry is not an inline table".to_string())?;
+        inner_table.insert("main", Value::from(gap_size));
+        return Ok(());
+    }
+
+    if let Some(value) = table.get_mut("monitor.main") {
+        *value = Value::from(gap_size);
+        return Ok(());
+    }
+
+    for (key, value) in table.iter_mut() {
+        if key == "monitor.main" {
+            *value = Value::from(gap_size);
+            return Ok(());
+        }
+    }
+
     table.insert("monitor.main", Value::from(gap_size));
     Ok(())
 }
@@ -220,14 +244,25 @@ mod tests {
         let right_table = right.get(1).and_then(Value::as_inline_table).unwrap();
         let left_table = left.get(1).and_then(Value::as_inline_table).unwrap();
 
+        let right_monitor = right_table
+            .get("monitor")
+            .and_then(Value::as_inline_table)
+            .unwrap();
+        let left_monitor = left_table
+            .get("monitor")
+            .and_then(Value::as_inline_table)
+            .unwrap();
+
         assert_eq!(
-            right_table.get("monitor.main").and_then(Value::as_integer),
+            right_monitor.get("main").and_then(Value::as_integer),
             Some(111)
         );
         assert_eq!(
-            left_table.get("monitor.main").and_then(Value::as_integer),
+            left_monitor.get("main").and_then(Value::as_integer),
             Some(111)
         );
+        assert!(right_table.get("monitor.main").is_none());
+        assert!(left_table.get("monitor.main").is_none());
         assert_eq!(right.get(0).unwrap().to_string(), original_right_first);
         assert_eq!(right.get(2).unwrap().to_string(), original_right_last);
         assert_eq!(left.get(0).unwrap().to_string(), original_left_first);
