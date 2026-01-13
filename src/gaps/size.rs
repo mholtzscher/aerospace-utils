@@ -1,4 +1,6 @@
-use std::path::PathBuf;
+use std::{io::IsTerminal, path::PathBuf};
+
+use colored::Colorize;
 
 use crate::cli::CommonOptions;
 use crate::config::update_config;
@@ -20,6 +22,28 @@ pub(crate) struct SizePlan {
     pub(crate) monitor_width: i64,
     pub(crate) gap_size: i64,
     pub(crate) state_load: Option<StateLoad>,
+}
+
+fn should_colorize(options: &CommonOptions) -> bool {
+    std::io::stdout().is_terminal() && !options.no_color && std::env::var_os("NO_COLOR").is_none()
+}
+
+fn value_text(value: impl ToString) -> colored::ColoredString {
+    value.to_string().green()
+}
+
+enum ReloadStatus {
+    Skipped,
+    Ok,
+    Failed,
+}
+
+fn reload_status_text(status: ReloadStatus) -> colored::ColoredString {
+    match status {
+        ReloadStatus::Skipped => "reload skipped".yellow(),
+        ReloadStatus::Ok => "reload ok".green(),
+        ReloadStatus::Failed => "reload failed".red(),
+    }
 }
 
 fn resolve_aerospace_path(dry_run: bool, no_reload: bool) -> Result<Option<PathBuf>, String> {
@@ -111,14 +135,24 @@ fn execute_plan(
     )?;
 
     let aerospace_path = resolve_aerospace_path(dry_run, no_reload)?;
-    if let Some(path) = aerospace_path
-        && let Err(message) = reload_aerospace_config(&path)
-    {
-        eprintln!("Warning: {message}");
-        return Ok(());
-    }
+    let reload_status = match aerospace_path {
+        None => ReloadStatus::Skipped,
+        Some(path) => match reload_aerospace_config(&path) {
+            Ok(()) => ReloadStatus::Ok,
+            Err(message) => {
+                eprintln!("Warning: {message}");
+                ReloadStatus::Failed
+            }
+        },
+    };
 
-    println!("Completed.");
+    println!(
+        "Gaps set to {} (from {} of {}) ({}).",
+        value_text(plan.gap_size),
+        value_text(format!("{}%", plan.percentage)),
+        value_text(format!("{}px", plan.monitor_width)),
+        reload_status_text(reload_status)
+    );
     Ok(())
 }
 
@@ -127,6 +161,8 @@ pub(crate) fn handle_size(
     percent: Option<i64>,
     set_default: bool,
 ) -> Result<(), String> {
+    colored::control::set_override(should_colorize(options));
+
     let plan = match build_size_plan(options, percent)? {
         SizePlanResult::Ready(plan) => plan,
         SizePlanResult::MissingPercentage { state_path } => {
