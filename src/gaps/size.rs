@@ -158,6 +158,7 @@ mod tests {
             no_reload: false,
             dry_run: false,
             verbose: false,
+            no_color: false,
             monitor_width: None,
         }
     }

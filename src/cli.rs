@@ -35,6 +35,9 @@ pub(crate) struct CommonOptions {
     /// Print verbose output
     #[arg(short, long, global = true)]
     pub(crate) verbose: bool,
+    /// Disable colored output
+    #[arg(long, global = true)]
+    pub(crate) no_color: bool,
     /// Override detected monitor width
     #[arg(long, hide = true, value_name = "PX", global = true)]
     pub(crate) monitor_width: Option<i64>,
