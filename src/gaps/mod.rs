@@ -4,7 +4,7 @@ pub(crate) mod size;
 
 pub(crate) use adjust::handle_adjust;
 pub(crate) use config::handle_config;
-pub(crate) use size::handle_size;
+pub(crate) use size::handle_use;
 
 pub(crate) fn validate_percentage(percentage: i64) -> Result<(), String> {
     if (1..=100).contains(&percentage) {

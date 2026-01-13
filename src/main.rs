@@ -8,7 +8,7 @@ mod system;
 mod util;
 
 use crate::cli::{Args, Commands, GapsCommands};
-use crate::gaps::{handle_adjust, handle_config, handle_size};
+use crate::gaps::{handle_adjust, handle_config, handle_use};
 
 fn main() {
     if let Err(message) = run() {
@@ -25,7 +25,7 @@ fn run() -> Result<(), String> {
             GapsCommands::Use {
                 percent,
                 set_default,
-            } => handle_size(&gaps.options, percent, set_default),
+            } => handle_use(&gaps.options, percent, set_default),
             GapsCommands::Adjust { amount } => handle_adjust(&gaps.options, amount),
             GapsCommands::Current => handle_config(&gaps.options),
         },

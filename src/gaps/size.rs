@@ -67,10 +67,7 @@ fn resolve_monitor_width(options: &CommonOptions) -> Result<i64, String> {
     }
 }
 
-fn build_size_plan(
-    options: &CommonOptions,
-    percent: Option<i64>,
-) -> Result<SizePlanResult, String> {
+fn build_use_plan(options: &CommonOptions, percent: Option<i64>) -> Result<SizePlanResult, String> {
     let config_path = resolve_config_path(options)?;
     let state_path = resolve_state_path(options)?;
     let state_load = read_state_file(&state_path, options.dry_run)?;
@@ -156,14 +153,14 @@ fn execute_plan(
     Ok(())
 }
 
-pub(crate) fn handle_size(
+pub(crate) fn handle_use(
     options: &CommonOptions,
     percent: Option<i64>,
     set_default: bool,
 ) -> Result<(), String> {
     colored::control::set_override(should_colorize(options));
 
-    let plan = match build_size_plan(options, percent)? {
+    let plan = match build_use_plan(options, percent)? {
         SizePlanResult::Ready(plan) => plan,
         SizePlanResult::MissingPercentage { state_path } => {
             println!(
