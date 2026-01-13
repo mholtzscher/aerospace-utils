@@ -29,9 +29,8 @@
         version = "0.2.0";
 
         # macOS-specific build inputs for CoreGraphics CGO bindings
-        # Use SDK 11.0 for compatibility with modern macOS
         darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin (
-          with pkgs.darwin.apple_sdk_11_0.frameworks;
+          with pkgs.apple_sdk.frameworks;
           [
             CoreGraphics
             IOKit
