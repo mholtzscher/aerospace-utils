@@ -62,7 +62,7 @@ pub(crate) enum GapsCommands {
     /// Adjust workspace size by amount
     Adjust {
         /// Amount to adjust (default 5)
-        #[arg(default_value_t = 5)]
+        #[arg(default_value_t = 5, allow_hyphen_values = true)]
         amount: i64,
     },
     /// Show resolved config and state
