@@ -7,22 +7,18 @@ use tempfile::NamedTempFile;
 use crate::cli::CommonOptions;
 
 fn default_config_path() -> Result<PathBuf, String> {
-    if let Some(config_dir) = dirs::config_dir() {
-        Ok(config_dir.join("aerospace").join("aerospace.toml"))
-    } else if let Some(home_dir) = dirs::home_dir() {
+    if let Some(home_dir) = dirs::home_dir() {
         Ok(home_dir.join(".config/aerospace/aerospace.toml"))
     } else {
-        Err("Unable to determine config directory".to_string())
+        Err("Unable to determine home directory".to_string())
     }
 }
 
 fn default_state_path() -> Result<PathBuf, String> {
-    if let Some(config_dir) = dirs::config_dir() {
-        Ok(config_dir.join("aerospace").join("workspace-size.toml"))
-    } else if let Some(home_dir) = dirs::home_dir() {
+    if let Some(home_dir) = dirs::home_dir() {
         Ok(home_dir.join(".config/aerospace/workspace-size.toml"))
     } else {
-        Err("Unable to determine config directory".to_string())
+        Err("Unable to determine home directory".to_string())
     }
 }
 
