@@ -1,12 +1,8 @@
 {
-  description = "A TUI for managing Nix flake inputs";
+  description = "CLI for managing Aerospace workspace gaps";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -14,82 +10,46 @@
     {
       self,
       nixpkgs,
-      rust-overlay,
       flake-utils,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        overlays = [ (import rust-overlay) ];
-        pkgs = import nixpkgs { inherit system overlays; };
-        cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+        pkgs = import nixpkgs { inherit system; };
 
-        rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-          extensions = [
-            "rust-src"
-            "rust-analyzer"
-            "clippy"
-          ];
-        };
-
-        nativeBuildInputs = with pkgs; [
-          rustToolchain
-          pkg-config
-          makeWrapper
+        # macOS-specific build inputs for CoreGraphics CGO bindings
+        darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
+          pkgs.darwin.apple_sdk.frameworks.CoreGraphics
+          pkgs.darwin.apple_sdk.frameworks.IOKit
+          pkgs.darwin.apple_sdk.frameworks.CoreFoundation
         ];
-
-        buildInputs =
-          with pkgs;
-          [
-            openssl
-            libgit2
-          ]
-          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-            pkgs.darwin.libiconv
-          ];
       in
       {
-        packages.default = pkgs.rustPlatform.buildRustPackage {
+        packages.default = pkgs.buildGoModule {
           pname = "aerospace-utils";
-          version = cargoToml.package.version;
-
+          version = "0.2.0";
           src = ./.;
 
-          cargoLock = {
-            lockFile = ./Cargo.lock;
-          };
+          vendorHash = null;
 
-          inherit nativeBuildInputs buildInputs;
+          # CGO required for CoreGraphics display detection on macOS
+          CGO_ENABLED = "1";
 
-          # Use system OpenSSL instead of building from source
-          OPENSSL_NO_VENDOR = 1;
+          buildInputs = darwinBuildInputs;
 
-          # Skip tests in Nix build - run with `cargo test` in devShell instead
-          # (test fixtures use paths that don't resolve correctly in the sandbox)
-          doCheck = false;
-
-          # Runtime dependencies
-          postInstall = ''
-            wrapProgram $out/bin/aerospace-utils \
-              --prefix PATH : ${
-                pkgs.lib.makeBinPath [
-                  pkgs.nix
-                  pkgs.git
-                ]
-              }
-          '';
-
-          nativeCheckInputs = [
-            pkgs.nix
-            pkgs.git
+          ldflags = [
+            "-s"
+            "-w"
+            "-X github.com/mholtzscher/aerospace-utils/cmd.Version=0.2.0"
           ];
 
           meta = with pkgs.lib; {
-            description = "A TUI for managing Nix flake inputs";
+            description = "CLI for managing Aerospace workspace gaps";
             homepage = "https://github.com/mholtzscher/aerospace-utils";
             license = licenses.mit;
             maintainers = [ ];
             mainProgram = "aerospace-utils";
+            platforms = platforms.darwin;
           };
         };
 
@@ -99,30 +59,28 @@
 
         checks.default = self.packages.${system}.default;
 
-        formatter = pkgs.nixfmt;
+        formatter = pkgs.nixfmt-rfc-style;
 
         devShells.default = pkgs.mkShell {
-          inherit buildInputs;
+          buildInputs = [
+            pkgs.go_1_26
+            pkgs.gopls
+            pkgs.golangci-lint
+            pkgs.gotools
+          ]
+          ++ darwinBuildInputs;
 
-          nativeBuildInputs =
-            nativeBuildInputs
-            ++ (with pkgs; [
-              cargo-watch
-              cargo-edit
-            ]);
-
-          RUST_BACKTRACE = 1;
-
-          # For git2 to find libgit2
-          LIBGIT2_SYS_USE_PKG_CONFIG = 1;
+          CGO_ENABLED = "1";
         };
 
         devShells.ci = pkgs.mkShell {
-          inherit buildInputs nativeBuildInputs;
+          buildInputs = [
+            pkgs.go_1_22
+            pkgs.golangci-lint
+          ]
+          ++ darwinBuildInputs;
 
-          RUST_BACKTRACE = 1;
-
-          LIBGIT2_SYS_USE_PKG_CONFIG = 1;
+          CGO_ENABLED = "1";
         };
       }
     );
