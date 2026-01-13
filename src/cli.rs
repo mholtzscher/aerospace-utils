@@ -18,7 +18,7 @@ pub(crate) struct GapsArgs {
     pub(crate) command: GapsCommands,
 }
 
-#[derive(ClapArgs, Debug)]
+#[derive(ClapArgs, Debug, Clone)]
 pub(crate) struct CommonOptions {
     /// Path to aerospace.toml
     #[arg(long, global = true)]

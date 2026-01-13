@@ -1,12 +1,8 @@
 use std::path::Path;
 
 use crate::cli::CommonOptions;
-use crate::config::MonitorGap;
-use crate::config::read_config_summary;
+use crate::config::{AerospaceConfig, MonitorGap, WorkspaceState};
 use crate::output;
-use crate::state::read_state_file;
-use crate::util::resolve_config_path;
-use crate::util::resolve_state_path;
 
 fn print_path(label: &str, path: &Path) {
     println!("{} {}", output::path_label(label), output::path(path));
@@ -36,12 +32,13 @@ fn print_monitor_gaps(label: &str, gaps: &[MonitorGap]) {
 pub(crate) fn handle_current(options: &CommonOptions) -> Result<(), String> {
     output::configure(options);
 
-    let config_path = resolve_config_path(options)?;
-    let state_path = resolve_state_path(options)?;
+    let config_path = AerospaceConfig::resolve_path(options)?;
+    let state_path = WorkspaceState::resolve_path(options)?;
 
     print_path("Config path:", &config_path);
     if config_path.exists() {
-        let summary = read_config_summary(&config_path)?;
+        let config = AerospaceConfig::load(config_path)?;
+        let summary = config.summary()?;
         print_gap_value("Inner gap horizontal", summary.inner_horizontal);
         print_gap_value("Inner gap vertical", summary.inner_vertical);
         print_gap_value("Outer gap top", summary.outer_top);
@@ -53,11 +50,15 @@ pub(crate) fn handle_current(options: &CommonOptions) -> Result<(), String> {
     }
 
     print_path("State path:", &state_path);
-    let state_load = read_state_file(&state_path, true)?;
-    match state_load {
-        Some(load) => {
-            let current = load.state.current.map(|value| value.to_string());
-            let default_percentage = load.state.default_percentage.map(|value| value.to_string());
+    // Pass dry_run=true to avoid writing during a read-only operation
+    let state = WorkspaceState::from_options(&CommonOptions {
+        dry_run: true,
+        ..options.clone()
+    })?;
+    match state {
+        Some(state) => {
+            let current = state.current().map(|value| value.to_string());
+            let default_percentage = state.default_percentage().map(|value| value.to_string());
             match current {
                 Some(value) => println!(
                     "{}: {}",

@@ -4,26 +4,22 @@ use colored::ColoredString;
 
 use crate::aerospace::resolve_binary;
 use crate::cli::CommonOptions;
-use crate::config::update_config;
+use crate::config::{AerospaceConfig, WorkspaceState};
 use crate::display::main_display_width;
 use crate::gaps::{calculate_gap_size, validate_percentage};
 use crate::output;
-use crate::state::{StateLoad, read_state_file, resolve_percentage, write_state};
-use crate::util::{resolve_config_path, resolve_state_path};
 
 enum SizePlanResult {
     MissingPercentage { state_path: PathBuf },
-    Ready(SizePlan),
+    Ready(Box<SizePlan>),
 }
 
-#[derive(Debug)]
 struct SizePlan {
-    config_path: PathBuf,
-    state_path: PathBuf,
+    config: AerospaceConfig,
+    state: WorkspaceState,
     percentage: i64,
     monitor_width: i64,
     gap_size: i64,
-    state_load: Option<StateLoad>,
 }
 
 enum ReloadStatus {
@@ -53,14 +49,18 @@ fn resolve_monitor_width(options: &CommonOptions) -> Result<i64, String> {
     }
 }
 
-fn build_plan_with_state(
+fn build_plan(
     options: &CommonOptions,
     percent: Option<i64>,
-    state_path: PathBuf,
-    state_load: Option<StateLoad>,
+    existing_state: Option<WorkspaceState>,
 ) -> Result<SizePlanResult, String> {
-    let config_path = resolve_config_path(options)?;
-    let percentage = resolve_percentage(percent, state_load.as_ref())?;
+    let config = AerospaceConfig::from_options(options)?;
+    let state_path = WorkspaceState::resolve_path(options)?;
+
+    let percentage = match &existing_state {
+        Some(state) => state.resolve_percentage(percent),
+        None => percent,
+    };
 
     let Some(percentage) = percentage else {
         return Ok(SizePlanResult::MissingPercentage { state_path });
@@ -70,55 +70,57 @@ fn build_plan_with_state(
     let monitor_width = resolve_monitor_width(options)?;
     let gap_size = calculate_gap_size(monitor_width, percentage);
 
-    Ok(SizePlanResult::Ready(SizePlan {
-        config_path,
-        state_path,
+    let state = match existing_state {
+        Some(state) => state,
+        None => WorkspaceState::new(state_path, percentage, None),
+    };
+
+    Ok(SizePlanResult::Ready(Box::new(SizePlan {
+        config,
+        state,
         percentage,
         monitor_width,
         gap_size,
-        state_load,
-    }))
+    })))
 }
 
 fn handle_dry_run(plan: &SizePlan) {
     println!(
         "Dry run: would set gaps to {} in {}",
         plan.gap_size,
-        plan.config_path.display()
+        plan.config.path().display()
     );
     println!(
         "Dry run: would write current percentage {} to {}",
         plan.percentage,
-        plan.state_path.display()
+        plan.state.path().display()
     );
 }
 
 fn execute_plan(
-    plan: &SizePlan,
+    mut plan: SizePlan,
     set_default: bool,
     verbose: bool,
     dry_run: bool,
     no_reload: bool,
 ) -> Result<(), String> {
     if verbose {
-        println!("Config path: {}", plan.config_path.display());
-        println!("State path: {}", plan.state_path.display());
+        println!("Config path: {}", plan.config.path().display());
+        println!("State path: {}", plan.state.path().display());
         println!("Monitor width: {}", plan.monitor_width);
         println!("Gap size: {}", plan.gap_size);
     }
 
     if dry_run {
-        handle_dry_run(plan);
+        handle_dry_run(&plan);
         return Ok(());
     }
 
-    update_config(&plan.config_path, plan.gap_size)?;
-    write_state(
-        &plan.state_path,
-        plan.percentage,
-        plan.state_load.as_ref().map(|load| &load.state),
-        set_default,
-    )?;
+    plan.config.set_main_gaps(plan.gap_size)?;
+    plan.config.write()?;
+
+    plan.state.update(plan.percentage, set_default);
+    plan.state.write()?;
 
     let reload_status = if no_reload {
         ReloadStatus::Skipped
@@ -150,10 +152,9 @@ pub(crate) fn handle_use(
 ) -> Result<(), String> {
     output::configure(options);
 
-    let state_path = resolve_state_path(options)?;
-    let state_load = read_state_file(&state_path, options.dry_run)?;
-    let plan = match build_plan_with_state(options, percent, state_path, state_load)? {
-        SizePlanResult::Ready(plan) => plan,
+    let existing_state = WorkspaceState::from_options(options)?;
+    let plan = match build_plan(options, percent, existing_state)? {
+        SizePlanResult::Ready(plan) => *plan,
         SizePlanResult::MissingPercentage { state_path } => {
             return Err(format!(
                 "No percentage provided and no saved percentage found at {}",
@@ -163,7 +164,7 @@ pub(crate) fn handle_use(
     };
 
     execute_plan(
-        &plan,
+        plan,
         set_default,
         options.verbose,
         options.dry_run,

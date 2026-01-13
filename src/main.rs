@@ -6,7 +6,6 @@ mod config;
 mod display;
 mod gaps;
 mod output;
-mod state;
 mod util;
 
 use crate::cli::{Args, Commands, GapsCommands};

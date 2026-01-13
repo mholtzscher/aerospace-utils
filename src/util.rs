@@ -4,42 +4,6 @@ use std::path::{Path, PathBuf};
 
 use tempfile::NamedTempFile;
 
-use crate::cli::CommonOptions;
-
-fn default_config_path() -> Result<PathBuf, String> {
-    if let Some(home_dir) = dirs::home_dir() {
-        Ok(home_dir.join(".config/aerospace/aerospace.toml"))
-    } else {
-        Err("Unable to determine home directory".to_string())
-    }
-}
-
-fn default_state_path() -> Result<PathBuf, String> {
-    if let Some(home_dir) = dirs::home_dir() {
-        Ok(home_dir.join(".config/aerospace/workspace-size.toml"))
-    } else {
-        Err("Unable to determine home directory".to_string())
-    }
-}
-
-pub(crate) fn resolve_config_path(options: &CommonOptions) -> Result<PathBuf, String> {
-    let path = match &options.config_path {
-        Some(path) => path.clone(),
-        None => default_config_path()?,
-    };
-
-    expand_tilde(&path)
-}
-
-pub(crate) fn resolve_state_path(options: &CommonOptions) -> Result<PathBuf, String> {
-    let path = match &options.state_path {
-        Some(path) => path.clone(),
-        None => default_state_path()?,
-    };
-
-    expand_tilde(&path)
-}
-
 pub(crate) fn expand_tilde(path: &Path) -> Result<PathBuf, String> {
     let path_str = path.to_string_lossy();
     if !path_str.starts_with('~') {
