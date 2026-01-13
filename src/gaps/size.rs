@@ -16,13 +16,13 @@ enum SizePlanResult {
 }
 
 #[derive(Debug)]
-pub(crate) struct SizePlan {
-    pub(crate) config_path: PathBuf,
-    pub(crate) state_path: PathBuf,
-    pub(crate) percentage: i64,
-    pub(crate) monitor_width: i64,
-    pub(crate) gap_size: i64,
-    pub(crate) state_load: Option<StateLoad>,
+struct SizePlan {
+    config_path: PathBuf,
+    state_path: PathBuf,
+    percentage: i64,
+    monitor_width: i64,
+    gap_size: i64,
+    state_load: Option<StateLoad>,
 }
 
 enum ReloadStatus {
@@ -39,14 +39,6 @@ fn reload_status_text(status: ReloadStatus) -> ColoredString {
     }
 }
 
-fn resolve_aerospace_path(dry_run: bool, no_reload: bool) -> Result<Option<PathBuf>, String> {
-    if dry_run || no_reload {
-        Ok(None)
-    } else {
-        require_aerospace_executable().map(Some)
-    }
-}
-
 fn resolve_monitor_width(options: &CommonOptions) -> Result<i64, String> {
     match options.monitor_width {
         Some(monitor_width) => {
@@ -60,10 +52,13 @@ fn resolve_monitor_width(options: &CommonOptions) -> Result<i64, String> {
     }
 }
 
-fn build_use_plan(options: &CommonOptions, percent: Option<i64>) -> Result<SizePlanResult, String> {
+fn build_plan_with_state(
+    options: &CommonOptions,
+    percent: Option<i64>,
+    state_path: PathBuf,
+    state_load: Option<StateLoad>,
+) -> Result<SizePlanResult, String> {
     let config_path = resolve_config_path(options)?;
-    let state_path = resolve_state_path(options)?;
-    let state_load = read_state_file(&state_path, options.dry_run)?;
     let percentage = resolve_percentage(percent, state_load.as_ref())?;
 
     let Some(percentage) = percentage else {
@@ -120,20 +115,21 @@ fn execute_plan(
     write_state(
         &plan.state_path,
         plan.percentage,
-        plan.state_load.as_ref().map(|load| load.state.clone()),
+        plan.state_load.as_ref().map(|load| &load.state),
         set_default,
     )?;
 
-    let aerospace_path = resolve_aerospace_path(dry_run, no_reload)?;
-    let reload_status = match aerospace_path {
-        None => ReloadStatus::Skipped,
-        Some(path) => match reload_aerospace_config(&path) {
+    let reload_status = if no_reload {
+        ReloadStatus::Skipped
+    } else {
+        let aerospace_path = require_aerospace_executable()?;
+        match reload_aerospace_config(&aerospace_path) {
             Ok(()) => ReloadStatus::Ok,
             Err(message) => {
                 eprintln!("Warning: {message}");
                 ReloadStatus::Failed
             }
-        },
+        }
     };
 
     println!(
@@ -153,14 +149,15 @@ pub(crate) fn handle_use(
 ) -> Result<(), String> {
     output::configure(options);
 
-    let plan = match build_use_plan(options, percent)? {
+    let state_path = resolve_state_path(options)?;
+    let state_load = read_state_file(&state_path, options.dry_run)?;
+    let plan = match build_plan_with_state(options, percent, state_path, state_load)? {
         SizePlanResult::Ready(plan) => plan,
         SizePlanResult::MissingPercentage { state_path } => {
-            println!(
+            return Err(format!(
                 "No percentage provided and no saved percentage found at {}",
                 state_path.display()
-            );
-            return Ok(());
+            ));
         }
     };
 
@@ -202,6 +199,15 @@ mod tests {
     fn resolve_monitor_width_rejects_non_positive() {
         let mut options = default_options();
         options.monitor_width = Some(0);
+
+        let error = resolve_monitor_width(&options).unwrap_err();
+        assert!(error.contains("positive"));
+    }
+
+    #[test]
+    fn resolve_monitor_width_rejects_negative() {
+        let mut options = default_options();
+        options.monitor_width = Some(-1200);
 
         let error = resolve_monitor_width(&options).unwrap_err();
         assert!(error.contains("positive"));

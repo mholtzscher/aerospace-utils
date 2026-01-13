@@ -98,7 +98,7 @@ pub(crate) fn resolve_percentage(
 pub(crate) fn write_state(
     path: &Path,
     percentage: i64,
-    existing_state: Option<WorkspaceState>,
+    existing_state: Option<&WorkspaceState>,
     set_default: bool,
 ) -> Result<(), String> {
     let default_percentage = if set_default {
@@ -205,7 +205,7 @@ default = 50
             default_percentage: Some(70),
         };
 
-        write_state(&path, 40, Some(existing), false).unwrap();
+        write_state(&path, 40, Some(&existing), false).unwrap();
 
         let contents = fs::read_to_string(&path).unwrap();
         let parsed = parse_state_contents(&contents).unwrap();
@@ -222,7 +222,7 @@ default = 50
             default_percentage: None,
         };
 
-        write_state(&path, 35, Some(existing), false).unwrap();
+        write_state(&path, 35, Some(&existing), false).unwrap();
 
         let contents = fs::read_to_string(&path).unwrap();
         let parsed = parse_state_contents(&contents).unwrap();

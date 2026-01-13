@@ -3,7 +3,7 @@ use crate::gaps::validate_percentage;
 use crate::state::{missing_state_file_message, read_state_file};
 use crate::util::resolve_state_path;
 
-use super::size::handle_use;
+use super::size::handle_use_with_state;
 
 pub(crate) fn handle_adjust(options: &CommonOptions, amount: i64) -> Result<(), String> {
     let state_path = resolve_state_path(options)?;
@@ -22,5 +22,5 @@ pub(crate) fn handle_adjust(options: &CommonOptions, amount: i64) -> Result<(), 
     validate_percentage(new_percentage)?;
     println!("Adjusting saved percentage {current} by {amount} to {new_percentage}.");
 
-    handle_use(options, Some(new_percentage), false)
+    handle_use_with_state(options, Some(new_percentage), false, state_path, state_load)
 }
