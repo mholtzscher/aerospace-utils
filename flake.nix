@@ -50,7 +50,7 @@
       in
       {
         packages.default = pkgs.rustPlatform.buildRustPackage {
-          pname = "melt";
+          pname = "aerospace-utils";
           version = cargoToml.package.version;
 
           src = ./.;
@@ -70,7 +70,7 @@
 
           # Runtime dependencies
           postInstall = ''
-            wrapProgram $out/bin/melt \
+            wrapProgram $out/bin/aerospace-utils \
               --prefix PATH : ${
                 pkgs.lib.makeBinPath [
                   pkgs.nix
@@ -86,10 +86,10 @@
 
           meta = with pkgs.lib; {
             description = "A TUI for managing Nix flake inputs";
-            homepage = "https://github.com/mholtzscher/melt";
+            homepage = "https://github.com/mholtzscher/aerospace-utils";
             license = licenses.mit;
             maintainers = [ ];
-            mainProgram = "melt";
+            mainProgram = "aerospace-utils";
           };
         };
 
