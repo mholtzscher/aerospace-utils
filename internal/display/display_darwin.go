@@ -8,32 +8,28 @@ package display
 
 #include <CoreGraphics/CoreGraphics.h>
 #include <IOKit/graphics/IOGraphicsLib.h>
+#include <IOKit/IOKitLib.h>
 #include <stdlib.h>
 #include <string.h>
 
-// getDisplayName retrieves the product name of a display from IOKit.
+// extractNameFromService extracts the display name from an IOKit service.
 // Returns a malloc'd string that must be freed by the caller.
-char* getDisplayName(CGDirectDisplayID displayID) {
-    io_service_t service = CGDisplayIOServicePort(displayID);
-    if (service == 0) {
-        return strdup("Unknown");
-    }
-
+static char* extractNameFromService(io_service_t service) {
     CFDictionaryRef info = IODisplayCreateInfoDictionary(service, kIODisplayOnlyPreferredName);
     if (info == NULL) {
-        return strdup("Unknown");
+        return NULL;
     }
 
     CFDictionaryRef names = CFDictionaryGetValue(info, CFSTR(kDisplayProductName));
     if (names == NULL || CFGetTypeID(names) != CFDictionaryGetTypeID()) {
         CFRelease(info);
-        return strdup("Unknown");
+        return NULL;
     }
 
     CFIndex count = CFDictionaryGetCount(names);
     if (count == 0) {
         CFRelease(info);
-        return strdup("Unknown");
+        return NULL;
     }
 
     // Get the first (and usually only) localized name
@@ -41,7 +37,7 @@ char* getDisplayName(CGDirectDisplayID displayID) {
     CFDictionaryGetKeysAndValues(names, NULL, values);
     CFStringRef name = (CFStringRef)values[0];
 
-    char *result;
+    char *result = NULL;
     if (name != NULL && CFGetTypeID(name) == CFStringGetTypeID()) {
         CFIndex length = CFStringGetLength(name);
         CFIndex maxSize = CFStringGetMaximumSizeForEncoding(length, kCFStringEncodingUTF8) + 1;
@@ -49,17 +45,66 @@ char* getDisplayName(CGDirectDisplayID displayID) {
         if (result != NULL) {
             if (!CFStringGetCString(name, result, maxSize, kCFStringEncodingUTF8)) {
                 free(result);
-                result = strdup("Unknown");
+                result = NULL;
             }
-        } else {
-            result = strdup("Unknown");
         }
-    } else {
-        result = strdup("Unknown");
     }
 
     CFRelease(info);
     return result;
+}
+
+// getDisplayName retrieves the product name of a display by matching
+// vendor and product IDs through IOKit registry iteration.
+// This avoids the deprecated CGDisplayIOServicePort function.
+// Returns a malloc'd string that must be freed by the caller.
+char* getDisplayName(CGDirectDisplayID displayID) {
+    uint32_t targetVendor = CGDisplayVendorNumber(displayID);
+    uint32_t targetModel = CGDisplayModelNumber(displayID);
+
+    // Iterate through all display services in IOKit
+    io_iterator_t iter;
+    kern_return_t result = IOServiceGetMatchingServices(
+        kIOMainPortDefault,
+        IOServiceMatching("IODisplayConnect"),
+        &iter
+    );
+
+    if (result != KERN_SUCCESS) {
+        return strdup("Unknown");
+    }
+
+    io_service_t service;
+    while ((service = IOIteratorNext(iter)) != 0) {
+        CFDictionaryRef info = IODisplayCreateInfoDictionary(service, kIODisplayOnlyPreferredName);
+        if (info == NULL) {
+            IOObjectRelease(service);
+            continue;
+        }
+
+        // Get vendor and product IDs from the display info
+        CFNumberRef vendorRef = CFDictionaryGetValue(info, CFSTR(kDisplayVendorID));
+        CFNumberRef productRef = CFDictionaryGetValue(info, CFSTR(kDisplayProductID));
+
+        uint32_t vendor = 0, product = 0;
+        if (vendorRef) CFNumberGetValue(vendorRef, kCFNumberSInt32Type, &vendor);
+        if (productRef) CFNumberGetValue(productRef, kCFNumberSInt32Type, &product);
+
+        CFRelease(info);
+
+        // Check if this matches our target display
+        if (vendor == targetVendor && product == targetModel) {
+            char *name = extractNameFromService(service);
+            IOObjectRelease(service);
+            IOObjectRelease(iter);
+            return name ? name : strdup("Unknown");
+        }
+
+        IOObjectRelease(service);
+    }
+
+    IOObjectRelease(iter);
+    return strdup("Unknown");
 }
 
 // DisplayData holds display information returned from C.
