@@ -11,527 +11,489 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGapsUseHelp(t *testing.T) {
-	result := testutil.RunCLI("gaps", "use", "--help")
+func TestGapsUseCases(t *testing.T) {
+	tests := []e2eCase{
+		{
+			name:       "help",
+			run:        func(t *testing.T) *testutil.Result { return testutil.RunCLI("gaps", "use", "--help") },
+			expectExit: 0,
+			stdoutContains: []string{
+				"use",
+				"percent",
+			},
+		},
+		{
+			name: "invalid negative",
+			run: func(t *testing.T) *testutil.Result {
+				return testutil.RunCLI("gaps", "use", "--monitor-width", "1920", "-10")
+			},
+			expectExit: 1,
+		},
+		{
+			name: "invalid zero",
+			run: func(t *testing.T) *testutil.Result {
+				return testutil.RunCLI("gaps", "use", "--monitor-width", "1920", "0")
+			},
+			expectExit: 1,
+		},
+		{
+			name: "invalid over 100",
+			run: func(t *testing.T) *testutil.Result {
+				return testutil.RunCLI("gaps", "use", "--monitor-width", "1920", "150")
+			},
+			expectExit: 1,
+		},
+		{
+			name: "invalid non-numeric",
+			run: func(t *testing.T) *testutil.Result {
+				return testutil.RunCLI("gaps", "use", "--monitor-width", "1920", "abc")
+			},
+			expectExit: 1,
+		},
+		{
+			name: "display unavailable without width",
+			run: func(t *testing.T) *testutil.Result {
+				tmpDir := t.TempDir()
+				statePath := filepath.Join(tmpDir, "state.toml")
+				return testutil.RunCLIWithEnv(
+					map[string]string{"PATH": ""},
+					"gaps", "use",
+					"--dry-run",
+					"--state-path", statePath,
+					"--no-color",
+					"50",
+				)
+			},
+			expectExit: 1,
+			stderrContains: []string{
+				"display detection not available",
+			},
+		},
+		{
+			name: "default paths",
+			run: func(t *testing.T) *testutil.Result {
+				tmpDir := t.TempDir()
+				configDir := filepath.Join(tmpDir, ".config", "aerospace")
+				require.NoError(t, os.MkdirAll(configDir, 0755))
 
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "use")
-	assert.Contains(t, result.Stdout, "percent")
-}
+				writeFixture(t, configDir, "aerospace.toml", "aerospace.toml")
+				writeFixture(t, configDir, "workspace-size.toml", "state.toml")
 
-func TestGapsUseInvalidPercentage(t *testing.T) {
-	tests := []struct {
-		name string
-		arg  string
-	}{
-		{"negative", "-10"},
-		{"zero", "0"},
-		{"over 100", "150"},
-		{"non-numeric", "abc"},
+				return testutil.RunCLIWithEnv(
+					map[string]string{"HOME": tmpDir},
+					"gaps", "use",
+					"--dry-run",
+					"--monitor-width", "1920",
+					"--no-color",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"50%",
+				"dry",
+			},
+		},
+		{
+			name: "legacy state format",
+			run: func(t *testing.T) *testutil.Result {
+				tmpDir := t.TempDir()
+				statePath := filepath.Join(tmpDir, "state.toml")
+				stateContent := "[workspace]\ncurrent = 40\ndefault = 30\n"
+				require.NoError(t, os.WriteFile(statePath, []byte(stateContent), 0644))
+
+				return testutil.RunCLI("gaps", "use",
+					"--dry-run",
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"40%",
+			},
+		},
+		{
+			name: "boundary minimum",
+			run: func(t *testing.T) *testutil.Result {
+				configPath, statePath, _ := setupConfigAndState(t, "aerospace.toml", "state.toml")
+				return testutil.RunCLI("gaps", "use",
+					"--dry-run",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+					"1",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"1%",
+			},
+		},
+		{
+			name: "boundary maximum",
+			run: func(t *testing.T) *testutil.Result {
+				configPath, statePath, _ := setupConfigAndState(t, "aerospace.toml", "state.toml")
+				return testutil.RunCLI("gaps", "use",
+					"--dry-run",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+					"100",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"100%",
+			},
+		},
+		func() e2eCase {
+			var configPath string
+			var configData []byte
+			var statePath string
+			return e2eCase{
+				name: "dry run",
+				run: func(t *testing.T) *testutil.Result {
+					configPath, statePath, configData = setupConfigAndState(t, "aerospace.toml", "state.toml")
+					return testutil.RunCLI("gaps", "use",
+						"--dry-run",
+						"--config-path", configPath,
+						"--state-path", statePath,
+						"--monitor-width", "1920",
+						"--no-color",
+						"50",
+					)
+				},
+				expectExit: 0,
+				stdoutContains: []string{
+					"dry",
+					"50%",
+					"480px",
+				},
+				assert: func(t *testing.T, _ *testutil.Result) {
+					afterConfig, err := os.ReadFile(configPath)
+					require.NoError(t, err)
+					assert.Equal(t, string(configData), string(afterConfig))
+				},
+			}
+		}(),
+		{
+			name: "from state",
+			run: func(t *testing.T) *testutil.Result {
+				configPath, statePath, _ := setupConfigAndState(t, "aerospace.toml", "state.toml")
+				return testutil.RunCLI("gaps", "use",
+					"--dry-run",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"50%",
+				"480px",
+			},
+		},
+		{
+			name: "no percentage without state",
+			run: func(t *testing.T) *testutil.Result {
+				configPath, _, _ := setupConfigAndState(t, "aerospace.toml", "state.toml")
+				return testutil.RunCLI("gaps", "use",
+					"--config-path", configPath,
+					"--state-path", filepath.Join(filepath.Dir(configPath), "nonexistent.toml"),
+					"--monitor-width", "1920",
+					"--no-color",
+				)
+			},
+			expectExit: 1,
+			stderrContains: []string{
+				"no percentage specified",
+			},
+		},
+		{
+			name: "default fallback",
+			run: func(t *testing.T) *testutil.Result {
+				tmpDir := t.TempDir()
+				configPath := writeFixture(t, tmpDir, "aerospace.toml", "aerospace.toml")
+				stateContent := "[monitors.main]\ndefault = 75\n"
+				statePath := filepath.Join(tmpDir, "state.toml")
+				require.NoError(t, os.WriteFile(statePath, []byte(stateContent), 0644))
+
+				return testutil.RunCLI("gaps", "use",
+					"--dry-run",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"75%",
+				"240px",
+			},
+		},
+		{
+			name: "empty state with percentage",
+			run: func(t *testing.T) *testutil.Result {
+				tmpDir := t.TempDir()
+				configPath := writeFixture(t, tmpDir, "aerospace.toml", "aerospace.toml")
+				statePath := filepath.Join(tmpDir, "state.toml")
+				require.NoError(t, os.WriteFile(statePath, []byte(""), 0644))
+
+				return testutil.RunCLI("gaps", "use",
+					"--dry-run",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+					"50",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"50%",
+				"480px",
+			},
+		},
+		{
+			name: "empty state without percentage",
+			run: func(t *testing.T) *testutil.Result {
+				tmpDir := t.TempDir()
+				configPath := writeFixture(t, tmpDir, "aerospace.toml", "aerospace.toml")
+				statePath := filepath.Join(tmpDir, "state.toml")
+				require.NoError(t, os.WriteFile(statePath, []byte(""), 0644))
+
+				return testutil.RunCLI("gaps", "use",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+				)
+			},
+			expectExit: 1,
+			stderrContains: []string{
+				"no percentage",
+			},
+		},
+		func() e2eCase {
+			var configPath string
+			var statePath string
+			return e2eCase{
+				name: "set default",
+				run: func(t *testing.T) *testutil.Result {
+					configPath, statePath, _ = setupConfigAndState(t, "aerospace.toml", "state.toml")
+					return testutil.RunCLI("gaps", "use",
+						"--no-reload",
+						"--set-default",
+						"--config-path", configPath,
+						"--state-path", statePath,
+						"--monitor-width", "1920",
+						"--no-color",
+						"75",
+					)
+				},
+				expectExit: 0,
+				stdoutContains: []string{
+					"75%",
+				},
+				assert: func(t *testing.T, _ *testutil.Result) {
+					afterConfig, err := os.ReadFile(configPath)
+					require.NoError(t, err)
+					assert.Contains(t, string(afterConfig), "monitor.main = 240")
+					assert.GreaterOrEqual(t, strings.Count(string(afterConfig), "monitor.main = 240"), 2)
+
+					afterState, err := os.ReadFile(statePath)
+					require.NoError(t, err)
+					assert.Contains(t, string(afterState), "current = 75")
+					assert.Contains(t, string(afterState), "default = 75")
+				},
+			}
+		}(),
+		{
+			name: "no reload",
+			run: func(t *testing.T) *testutil.Result {
+				configPath, statePath, _ := setupConfigAndState(t, "aerospace.toml", "state.toml")
+				return testutil.RunCLI("gaps", "use",
+					"--dry-run",
+					"--no-reload",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+					"50",
+				)
+			},
+			expectExit: 0,
+		},
+		{
+			name: "with monitor",
+			run: func(t *testing.T) *testutil.Result {
+				tmpDir := t.TempDir()
+				configPath := writeFixture(t, tmpDir, "aerospace.toml", "aerospace-multi-monitor.toml")
+				statePath := writeFixture(t, tmpDir, "state.toml", "state.toml")
+
+				return testutil.RunCLI("gaps", "use",
+					"--dry-run",
+					"--monitor", "Built-in Retina Display",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "2560",
+					"--no-color",
+					"60",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"Built-in Retina Display",
+				"60%",
+			},
+		},
+		{
+			name: "unknown monitor",
+			run: func(t *testing.T) *testutil.Result {
+				configPath, statePath, _ := setupConfigAndState(t, "aerospace.toml", "state.toml")
+				return testutil.RunCLI("gaps", "use",
+					"--dry-run",
+					"--monitor", "NonExistent Monitor",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+					"50",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"NonExistent Monitor",
+			},
+		},
+		{
+			name: "invalid config",
+			run: func(t *testing.T) *testutil.Result {
+				tmpDir := t.TempDir()
+				configPath := writeFixture(t, tmpDir, "aerospace.toml", "invalid.toml")
+				statePath := writeFixture(t, tmpDir, "state.toml", "state.toml")
+
+				return testutil.RunCLI("gaps", "use",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+					"50",
+				)
+			},
+			expectExit: 1,
+			stderrContains: []string{
+				"load config",
+			},
+		},
+		{
+			name: "invalid state format",
+			run: func(t *testing.T) *testutil.Result {
+				tmpDir := t.TempDir()
+				statePath := filepath.Join(tmpDir, "state.toml")
+				require.NoError(t, os.WriteFile(statePath, []byte("not=toml"), 0644))
+
+				return testutil.RunCLI("gaps", "use",
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+					"50",
+				)
+			},
+			expectExit: 1,
+			stderrContains: []string{
+				"load state",
+			},
+		},
+		{
+			name: "reload missing aerospace",
+			run: func(t *testing.T) *testutil.Result {
+				configPath, statePath, _ := setupConfigAndState(t, "aerospace.toml", "state.toml")
+				return testutil.RunCLIWithEnv(
+					map[string]string{"PATH": ""},
+					"gaps", "use",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+					"60",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"aerospace not found",
+			},
+		},
+		{
+			name: "reload failure",
+			run: func(t *testing.T) *testutil.Result {
+				tmpDir := t.TempDir()
+				binDir := filepath.Join(tmpDir, "bin")
+				require.NoError(t, os.MkdirAll(binDir, 0755))
+
+				fakeBinary := filepath.Join(binDir, "aerospace")
+				fakeScript := "#!/bin/sh\necho boom\nexit 1\n"
+				require.NoError(t, os.WriteFile(fakeBinary, []byte(fakeScript), 0755))
+
+				configPath := writeFixture(t, tmpDir, "aerospace.toml", "aerospace.toml")
+				statePath := writeFixture(t, tmpDir, "state.toml", "state.toml")
+
+				return testutil.RunCLIWithEnv(
+					map[string]string{"PATH": binDir},
+					"gaps", "use",
+					"--config-path", configPath,
+					"--state-path", statePath,
+					"--monitor-width", "1920",
+					"--no-color",
+					"60",
+				)
+			},
+			expectExit: 0,
+			stdoutContains: []string{
+				"reload failed",
+				"boom",
+			},
+		},
+		func() e2eCase {
+			var configPath string
+			var configData []byte
+			var statePath string
+			return e2eCase{
+				name: "actual write",
+				run: func(t *testing.T) *testutil.Result {
+					configPath, statePath, configData = setupConfigAndState(t, "aerospace.toml", "state.toml")
+					return testutil.RunCLI("gaps", "use",
+						"--no-reload",
+						"--config-path", configPath,
+						"--state-path", statePath,
+						"--monitor-width", "1920",
+						"--no-color",
+						"60",
+					)
+				},
+				expectExit: 0,
+				assert: func(t *testing.T, _ *testutil.Result) {
+					afterConfig, err := os.ReadFile(configPath)
+					require.NoError(t, err)
+					assert.NotEqual(t, string(configData), string(afterConfig))
+					assert.Contains(t, string(afterConfig), "monitor.main = 384")
+					assert.GreaterOrEqual(t, strings.Count(string(afterConfig), "monitor.main = 384"), 2)
+
+					afterState, err := os.ReadFile(statePath)
+					require.NoError(t, err)
+					assert.Contains(t, string(afterState), "current = 60")
+					assert.Contains(t, string(afterState), "default = 50")
+				},
+			}
+		}(),
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := testutil.RunCLI("gaps", "use", "--monitor-width", "1920", tt.arg)
-			assert.NotEqual(t, 0, result.ExitCode)
-		})
-	}
-}
-
-func TestGapsUseDisplayUnavailableRequiresMonitorWidth(t *testing.T) {
-	tmpDir := t.TempDir()
-	statePath := filepath.Join(tmpDir, "state.toml")
-
-	result := testutil.RunCLIWithEnv(
-		map[string]string{"PATH": ""},
-		"gaps", "use",
-		"--dry-run",
-		"--state-path", statePath,
-		"--no-color",
-		"50",
-	)
-
-	assert.NotEqual(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stderr, "display detection not available")
-}
-
-func TestGapsUseDefaultPaths(t *testing.T) {
-	tmpDir := t.TempDir()
-	configDir := filepath.Join(tmpDir, ".config", "aerospace")
-	require.NoError(t, os.MkdirAll(configDir, 0755))
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "aerospace.toml"), configData, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "workspace-size.toml"), stateData, 0644))
-
-	result := testutil.RunCLIWithEnv(
-		map[string]string{"HOME": tmpDir},
-		"gaps", "use",
-		"--dry-run",
-		"--monitor-width", "1920",
-		"--no-color",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "50%")
-	assert.Contains(t, result.Stdout, "dry")
-}
-
-func TestGapsUseLegacyStateFormat(t *testing.T) {
-	tmpDir := t.TempDir()
-	statePath := filepath.Join(tmpDir, "state.toml")
-
-	stateContent := "[workspace]\ncurrent = 40\ndefault = 30\n"
-	require.NoError(t, os.WriteFile(statePath, []byte(stateContent), 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--dry-run",
-		"--state-path", statePath,
-		"--monitor-width", "1920",
-		"--no-color",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "40%")
-}
-
-func TestGapsUseBoundaryPercentages(t *testing.T) {
-	tests := []struct {
-		name    string
-		percent string
-	}{
-		{"minimum valid (1%)", "1"},
-		{"maximum valid (100%)", "100"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tmpDir := t.TempDir()
-
-			configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-			require.NoError(t, err)
-			require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), configData, 0644))
-
-			stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-			require.NoError(t, err)
-			require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "state.toml"), stateData, 0644))
-
-			result := testutil.RunCLI("gaps", "use",
-				"--dry-run",
-				"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-				"--state-path", filepath.Join(tmpDir, "state.toml"),
-				"--monitor-width", "1920",
-				"--no-color",
-				tt.percent,
-			)
-
-			assert.Equal(t, 0, result.ExitCode)
-			assert.Contains(t, result.Stdout, tt.percent+"%")
-		})
-	}
-}
-
-func TestGapsUseDryRun(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	configPath := filepath.Join(tmpDir, "aerospace.toml")
-	require.NoError(t, os.WriteFile(configPath, configData, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	statePath := filepath.Join(tmpDir, "state.toml")
-	require.NoError(t, os.WriteFile(statePath, stateData, 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--dry-run",
-		"--config-path", configPath,
-		"--state-path", statePath,
-		"--monitor-width", "1920",
-		"--no-color",
-		"50",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "dry")
-	assert.Contains(t, result.Stdout, "50%")
-	assert.Contains(t, result.Stdout, "480px")
-
-	afterConfig, err := os.ReadFile(configPath)
-	require.NoError(t, err)
-	assert.Equal(t, string(configData), string(afterConfig))
-}
-
-func TestGapsUseFromState(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), configData, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "state.toml"), stateData, 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--dry-run",
-		"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-		"--state-path", filepath.Join(tmpDir, "state.toml"),
-		"--monitor-width", "1920",
-		"--no-color",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "50%") // uses current from state
-	assert.Contains(t, result.Stdout, "480px")
-}
-
-func TestGapsUseNoPercentageNoState(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), configData, 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-		"--state-path", filepath.Join(tmpDir, "nonexistent.toml"),
-		"--monitor-width", "1920",
-		"--no-color",
-	)
-
-	assert.NotEqual(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stderr, "no percentage specified")
-}
-
-func TestGapsUseDefaultFallback(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), configData, 0644))
-
-	// Create state with only default, no current
-	stateContent := "[monitors.main]\ndefault = 75\n"
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "state.toml"), []byte(stateContent), 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--dry-run",
-		"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-		"--state-path", filepath.Join(tmpDir, "state.toml"),
-		"--monitor-width", "1920",
-		"--no-color",
-	)
-
-	// Should use the default percentage (75%)
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "75%")
-	assert.Contains(t, result.Stdout, "240px")
-}
-
-func TestGapsUseEmptyState(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), configData, 0644))
-
-	// Create empty state file
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "state.toml"), []byte(""), 0644))
-
-	// With explicit percentage, should succeed
-	result := testutil.RunCLI("gaps", "use",
-		"--dry-run",
-		"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-		"--state-path", filepath.Join(tmpDir, "state.toml"),
-		"--monitor-width", "1920",
-		"--no-color",
-		"50",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "50%")
-	assert.Contains(t, result.Stdout, "480px")
-}
-
-func TestGapsUseEmptyStateNoPercentage(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), configData, 0644))
-
-	// Create empty state file
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "state.toml"), []byte(""), 0644))
-
-	// Without explicit percentage and empty state, should fail
-	result := testutil.RunCLI("gaps", "use",
-		"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-		"--state-path", filepath.Join(tmpDir, "state.toml"),
-		"--monitor-width", "1920",
-		"--no-color",
-	)
-
-	assert.NotEqual(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stderr, "no percentage")
-}
-
-func TestGapsUseSetDefault(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	configPath := filepath.Join(tmpDir, "aerospace.toml")
-	require.NoError(t, os.WriteFile(configPath, configData, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	statePath := filepath.Join(tmpDir, "state.toml")
-	require.NoError(t, os.WriteFile(statePath, stateData, 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--no-reload",
-		"--set-default",
-		"--config-path", configPath,
-		"--state-path", statePath,
-		"--monitor-width", "1920",
-		"--no-color",
-		"75",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "75%")
-
-	afterConfig, err := os.ReadFile(configPath)
-	require.NoError(t, err)
-	assert.Contains(t, string(afterConfig), "monitor.main = 240")
-	assert.GreaterOrEqual(t, strings.Count(string(afterConfig), "monitor.main = 240"), 2)
-
-	afterState, err := os.ReadFile(statePath)
-	require.NoError(t, err)
-	assert.Contains(t, string(afterState), "current = 75")
-	assert.Contains(t, string(afterState), "default = 75")
-}
-
-func TestGapsUseNoReload(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), configData, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "state.toml"), stateData, 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--dry-run",
-		"--no-reload",
-		"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-		"--state-path", filepath.Join(tmpDir, "state.toml"),
-		"--monitor-width", "1920",
-		"--no-color",
-		"50",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-}
-
-func TestGapsUseWithMonitor(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace-multi-monitor.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), configData, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "state.toml"), stateData, 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--dry-run",
-		"--monitor", "Built-in Retina Display",
-		"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-		"--state-path", filepath.Join(tmpDir, "state.toml"),
-		"--monitor-width", "2560",
-		"--no-color",
-		"60",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "Built-in Retina Display")
-	assert.Contains(t, result.Stdout, "60%")
-}
-
-func TestGapsUseUnknownMonitor(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), configData, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "state.toml"), stateData, 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--dry-run",
-		"--monitor", "NonExistent Monitor",
-		"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-		"--state-path", filepath.Join(tmpDir, "state.toml"),
-		"--monitor-width", "1920",
-		"--no-color",
-		"50",
-	)
-
-	// Should succeed in dry-run - the monitor name is just used for state tracking
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "NonExistent Monitor")
-}
-
-func TestGapsUseInvalidConfig(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	invalidConfig, err := os.ReadFile(testdataPath(t, "invalid.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), invalidConfig, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "state.toml"), stateData, 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-		"--state-path", filepath.Join(tmpDir, "state.toml"),
-		"--monitor-width", "1920",
-		"--no-color",
-		"50",
-	)
-
-	assert.NotEqual(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stderr, "load config")
-}
-
-func TestGapsUseInvalidStateFormat(t *testing.T) {
-	tmpDir := t.TempDir()
-	statePath := filepath.Join(tmpDir, "state.toml")
-
-	require.NoError(t, os.WriteFile(statePath, []byte("not=toml"), 0644))
-
-	result := testutil.RunCLI("gaps", "use",
-		"--state-path", statePath,
-		"--monitor-width", "1920",
-		"--no-color",
-		"50",
-	)
-
-	assert.NotEqual(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stderr, "load state")
-}
-
-func TestGapsUseReloadMissingAerospace(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	configPath := filepath.Join(tmpDir, "aerospace.toml")
-	require.NoError(t, os.WriteFile(configPath, configData, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	statePath := filepath.Join(tmpDir, "state.toml")
-	require.NoError(t, os.WriteFile(statePath, stateData, 0644))
-
-	result := testutil.RunCLIWithEnv(
-		map[string]string{"PATH": ""},
-		"gaps", "use",
-		"--config-path", configPath,
-		"--state-path", statePath,
-		"--monitor-width", "1920",
-		"--no-color",
-		"60",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "aerospace not found")
-}
-
-func TestGapsUseReloadFailure(t *testing.T) {
-	tmpDir := t.TempDir()
-	binDir := filepath.Join(tmpDir, "bin")
-	require.NoError(t, os.MkdirAll(binDir, 0755))
-
-	fakeBinary := filepath.Join(binDir, "aerospace")
-	fakeScript := "#!/bin/sh\necho boom\nexit 1\n"
-	require.NoError(t, os.WriteFile(fakeBinary, []byte(fakeScript), 0755))
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	configPath := filepath.Join(tmpDir, "aerospace.toml")
-	require.NoError(t, os.WriteFile(configPath, configData, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	statePath := filepath.Join(tmpDir, "state.toml")
-	require.NoError(t, os.WriteFile(statePath, stateData, 0644))
-
-	result := testutil.RunCLIWithEnv(
-		map[string]string{"PATH": binDir},
-		"gaps", "use",
-		"--config-path", configPath,
-		"--state-path", statePath,
-		"--monitor-width", "1920",
-		"--no-color",
-		"60",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "reload failed")
-	assert.Contains(t, result.Stdout, "boom")
-}
-
-func TestGapsUseActualWrite(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
-	require.NoError(t, err)
-	configPath := filepath.Join(tmpDir, "aerospace.toml")
-	require.NoError(t, os.WriteFile(configPath, configData, 0644))
-
-	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
-	require.NoError(t, err)
-	statePath := filepath.Join(tmpDir, "state.toml")
-	require.NoError(t, os.WriteFile(statePath, stateData, 0644))
-
-	// Run without --dry-run but with --no-reload (to avoid needing aerospace binary)
-	result := testutil.RunCLI("gaps", "use",
-		"--no-reload",
-		"--config-path", configPath,
-		"--state-path", statePath,
-		"--monitor-width", "1920",
-		"--no-color",
-		"60",
-	)
-
-	assert.Equal(t, 0, result.ExitCode)
-
-	// Verify config was actually modified
-	afterConfig, err := os.ReadFile(configPath)
-	require.NoError(t, err)
-	assert.NotEqual(t, string(configData), string(afterConfig))
-	assert.Contains(t, string(afterConfig), "monitor.main = 384")
-	assert.GreaterOrEqual(t, strings.Count(string(afterConfig), "monitor.main = 384"), 2)
-
-	// Verify state was actually modified
-	afterState, err := os.ReadFile(statePath)
-	require.NoError(t, err)
-	assert.Contains(t, string(afterState), "current = 60")
-	assert.Contains(t, string(afterState), "default = 50")
+	runCases(t, tests)
 }
 
 func TestGapsUseWithAerospace(t *testing.T) {
