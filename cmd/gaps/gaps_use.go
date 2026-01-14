@@ -3,7 +3,6 @@ package gaps
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -54,14 +53,7 @@ func runUse(c *cobra.Command, args []string) error {
 		explicitPercent = &p
 	}
 
-	// Resolve config path
-	configPath := opts.ConfigPath
-	if configPath == "" {
-		configPath = config.DefaultConfigPath()
-	}
-	configPath = config.ExpandPath(configPath)
-
-	// Create workspace service
+	configSvc := config.NewAerospaceService(opts.ConfigPath)
 	stateSvc := config.NewWorkspaceService(opts.StatePath)
 
 	// Resolve percentage
@@ -95,21 +87,19 @@ func runUse(c *cobra.Command, args []string) error {
 	}
 
 	// Check if config exists
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		return fmt.Errorf("config file not found: %s\nCreate it manually or run 'aerospace' to generate a default config", configPath)
-	}
-
-	// Load and update config
-	cfg, err := config.LoadAerospaceConfig(configPath)
+	exists, err := configSvc.Exists()
 	if err != nil {
-		return fmt.Errorf("load config: %w", err)
+		return fmt.Errorf("check config: %w", err)
+	}
+	if !exists {
+		return fmt.Errorf("config file not found: %s\nCreate it manually or run 'aerospace' to generate a default config", configSvc.ConfigPath())
 	}
 
-	if err := cfg.SetMonitorGaps(opts.Monitor, gapSize); err != nil {
+	if err := configSvc.SetMonitorGaps(opts.Monitor, gapSize); err != nil {
 		return fmt.Errorf("update config: %w", err)
 	}
 
-	if err := cfg.Write(); err != nil {
+	if err := configSvc.Write(); err != nil {
 		return fmt.Errorf("write config: %w", err)
 	}
 

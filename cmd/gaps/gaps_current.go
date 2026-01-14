@@ -2,7 +2,6 @@ package gaps
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
 	"github.com/mholtzscher/aerospace-utils/internal/config"
@@ -29,26 +28,21 @@ func runCurrent(c *cobra.Command, args []string) error {
 	opts := cli.GetOptions()
 	out := output.New(opts.NoColor)
 
-	// Resolve config path
-	configPath := opts.ConfigPath
-	if configPath == "" {
-		configPath = config.DefaultConfigPath()
-	}
-	configPath = config.ExpandPath(configPath)
-
-	// Create workspace service
+	configSvc := config.NewAerospaceService(opts.ConfigPath)
 	stateSvc := config.NewWorkspaceService(opts.StatePath)
 
 	// Print config info
 	out.PrintHeader("Config")
-	out.PrintPath("path", configPath)
+	out.PrintPath("path", configSvc.ConfigPath())
 
-	if _, err := os.Stat(configPath); err == nil {
-		cfg, err := config.LoadAerospaceConfig(configPath)
+	exists, err := configSvc.Exists()
+	if err != nil {
+		out.Error("  Error checking config: %v\n", err)
+	} else if exists {
+		summary, err := configSvc.Summary()
 		if err != nil {
 			out.Error("  Error loading config: %v\n", err)
 		} else {
-			summary := cfg.Summary()
 			printConfigSummary(out, summary)
 		}
 	} else {
@@ -61,7 +55,10 @@ func runCurrent(c *cobra.Command, args []string) error {
 	out.PrintHeader("State")
 	out.PrintPath("path", stateSvc.StatePath())
 
-	if _, err := os.Stat(stateSvc.StatePath()); err == nil {
+	exists, err = stateSvc.Exists()
+	if err != nil {
+		out.Error("  Error checking state: %v\n", err)
+	} else if exists {
 		monitors, err := stateSvc.Monitors()
 		if err != nil {
 			out.Error("  Error loading state: %v\n", err)

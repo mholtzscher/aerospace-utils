@@ -368,7 +368,7 @@ func TestGapsUseCases(t *testing.T) {
 			},
 			expectExit: 1,
 			stderrContains: []string{
-				"load config",
+				"update config",
 			},
 		},
 		{

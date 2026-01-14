@@ -13,9 +13,181 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
-// AerospaceConfig represents the aerospace.toml configuration file.
-type AerospaceConfig struct {
-	Path    string
+var (
+	ErrConfigRead      = errors.New("failed to read config file")
+	ErrConfigParse     = errors.New("failed to parse config file")
+	ErrConfigWrite     = errors.New("failed to write config file")
+	ErrMonitorNotFound = errors.New("monitor not found in config")
+)
+
+// AerospaceService abstracts config file resolution, loading, and writing.
+type AerospaceService struct {
+	configPath string
+	config     *aerospaceConfig // lazily loaded
+}
+
+// NewAerospaceService creates a service. If explicitPath is empty, uses DefaultConfigPath().
+func NewAerospaceService(explicitPath string) *AerospaceService {
+	path := explicitPath
+	if path == "" {
+		path = DefaultConfigPath()
+	}
+	path = ExpandPath(path)
+
+	return &AerospaceService{
+		configPath: path,
+	}
+}
+
+// ConfigPath returns the resolved config file path.
+func (as *AerospaceService) ConfigPath() string {
+	return as.configPath
+}
+
+// loadConfig loads the config from disk if not already loaded.
+func (as *AerospaceService) loadConfig() error {
+	if as.config != nil {
+		return nil
+	}
+
+	content, err := os.ReadFile(as.configPath)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrConfigRead, err)
+	}
+
+	var parsed aerospaceConfigData
+	if err := toml.Unmarshal(content, &parsed); err != nil {
+		return fmt.Errorf("%w: %w", ErrConfigParse, err)
+	}
+
+	as.config = &aerospaceConfig{
+		path:    as.configPath,
+		content: string(content),
+		parsed:  parsed,
+	}
+
+	return nil
+}
+
+// Exists returns true if the config file exists.
+func (as *AerospaceService) Exists() (bool, error) {
+	_, err := os.Stat(as.configPath)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, fmt.Errorf("stat config: %w", err)
+}
+
+// Summary returns a summary of the gap configuration.
+func (as *AerospaceService) Summary() (Summary, error) {
+	if err := as.loadConfig(); err != nil {
+		return Summary{}, err
+	}
+
+	s := Summary{
+		InnerHorizontal: as.config.parsed.Gaps.Inner.Horizontal,
+		InnerVertical:   as.config.parsed.Gaps.Inner.Vertical,
+	}
+
+	s.OuterTop = extractScalarGap(as.config.parsed.Gaps.Outer.Top)
+	s.OuterBottom = extractScalarGap(as.config.parsed.Gaps.Outer.Bottom)
+	s.LeftGaps = extractMonitorGaps(as.config.parsed.Gaps.Outer.Left)
+	s.RightGaps = extractMonitorGaps(as.config.parsed.Gaps.Outer.Right)
+
+	return s, nil
+}
+
+// MonitorNames returns all monitor names found in the outer gap configuration.
+func (as *AerospaceService) MonitorNames() ([]string, error) {
+	summary, err := as.Summary()
+	if err != nil {
+		return nil, err
+	}
+
+	seen := make(map[string]bool)
+	var names []string
+
+	for _, g := range summary.LeftGaps {
+		if !seen[g.Name] {
+			seen[g.Name] = true
+			names = append(names, g.Name)
+		}
+	}
+	for _, g := range summary.RightGaps {
+		if !seen[g.Name] {
+			seen[g.Name] = true
+			names = append(names, g.Name)
+		}
+	}
+
+	return names, nil
+}
+
+// SetMonitorGaps updates the gap value for a specific monitor.
+// Uses regex-based replacement to preserve file formatting.
+func (as *AerospaceService) SetMonitorGaps(monitorName string, gapSize int64) error {
+	if err := as.loadConfig(); err != nil {
+		return err
+	}
+
+	// Build regex patterns for the monitor name
+	// Handle both quoted and unquoted monitor names
+	var patterns []*regexp.Regexp
+
+	// Pattern for: monitor.main = 123 or monitor.'name' = 123 or monitor."name" = 123
+	if monitorName == "main" || isSimpleKey(monitorName) {
+		// Unquoted key: monitor.main = 123
+		patterns = append(patterns, regexp.MustCompile(
+			fmt.Sprintf(`(monitor\.%s\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
+		))
+	}
+
+	// Single-quoted key: monitor.'name' = 123
+	patterns = append(patterns, regexp.MustCompile(
+		fmt.Sprintf(`(monitor\.'%s'\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
+	))
+
+	// Double-quoted key: monitor."name" = 123
+	patterns = append(patterns, regexp.MustCompile(
+		fmt.Sprintf(`(monitor\."%s"\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
+	))
+
+	// Try each pattern
+	newValue := strconv.FormatInt(gapSize, 10)
+	replaced := false
+
+	for _, pattern := range patterns {
+		if pattern.MatchString(as.config.content) {
+			as.config.content = pattern.ReplaceAllString(as.config.content, "${1}"+newValue)
+			replaced = true
+		}
+	}
+
+	if !replaced {
+		return fmt.Errorf("%w: %s", ErrMonitorNotFound, monitorName)
+	}
+
+	return nil
+}
+
+// Write writes the config back to disk atomically.
+func (as *AerospaceService) Write() error {
+	if as.config == nil {
+		return errors.New("no config loaded")
+	}
+
+	if err := WriteAtomic(as.config.path, as.config.content); err != nil {
+		return fmt.Errorf("%w: %w", ErrConfigWrite, err)
+	}
+	return nil
+}
+
+// aerospaceConfig holds the loaded config state.
+type aerospaceConfig struct {
+	path    string
 	content string // Raw file content for format-preserving edits
 	parsed  aerospaceConfigData
 }
@@ -50,40 +222,6 @@ type Summary struct {
 	OuterBottom     *int64
 	LeftGaps        []MonitorGap
 	RightGaps       []MonitorGap
-}
-
-// LoadAerospaceConfig loads and parses the aerospace.toml file.
-func LoadAerospaceConfig(path string) (*AerospaceConfig, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read config: %w", err)
-	}
-
-	var parsed aerospaceConfigData
-	if err := toml.Unmarshal(content, &parsed); err != nil {
-		return nil, fmt.Errorf("parse config: %w", err)
-	}
-
-	return &AerospaceConfig{
-		Path:    path,
-		content: string(content),
-		parsed:  parsed,
-	}, nil
-}
-
-// Summary returns a summary of the gap configuration.
-func (c *AerospaceConfig) Summary() Summary {
-	s := Summary{
-		InnerHorizontal: c.parsed.Gaps.Inner.Horizontal,
-		InnerVertical:   c.parsed.Gaps.Inner.Vertical,
-	}
-
-	s.OuterTop = extractScalarGap(c.parsed.Gaps.Outer.Top)
-	s.OuterBottom = extractScalarGap(c.parsed.Gaps.Outer.Bottom)
-	s.LeftGaps = extractMonitorGaps(c.parsed.Gaps.Outer.Left)
-	s.RightGaps = extractMonitorGaps(c.parsed.Gaps.Outer.Right)
-
-	return s
 }
 
 // extractScalarGap extracts a scalar gap value from various possible types.
@@ -141,70 +279,6 @@ func extractMonitorGaps(v interface{}) []MonitorGap {
 	return gaps
 }
 
-// MonitorNames returns all monitor names found in the outer gap configuration.
-func (c *AerospaceConfig) MonitorNames() []string {
-	seen := make(map[string]bool)
-	var names []string
-
-	for _, g := range c.Summary().LeftGaps {
-		if !seen[g.Name] {
-			seen[g.Name] = true
-			names = append(names, g.Name)
-		}
-	}
-	for _, g := range c.Summary().RightGaps {
-		if !seen[g.Name] {
-			seen[g.Name] = true
-			names = append(names, g.Name)
-		}
-	}
-
-	return names
-}
-
-// SetMonitorGaps updates the gap value for a specific monitor.
-// Uses regex-based replacement to preserve file formatting.
-func (c *AerospaceConfig) SetMonitorGaps(monitorName string, gapSize int64) error {
-	// Build regex patterns for the monitor name
-	// Handle both quoted and unquoted monitor names
-	var patterns []*regexp.Regexp
-
-	// Pattern for: monitor.main = 123 or monitor.'name' = 123 or monitor."name" = 123
-	if monitorName == "main" || isSimpleKey(monitorName) {
-		// Unquoted key: monitor.main = 123
-		patterns = append(patterns, regexp.MustCompile(
-			fmt.Sprintf(`(monitor\.%s\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
-		))
-	}
-
-	// Single-quoted key: monitor.'name' = 123
-	patterns = append(patterns, regexp.MustCompile(
-		fmt.Sprintf(`(monitor\.'%s'\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
-	))
-
-	// Double-quoted key: monitor."name" = 123
-	patterns = append(patterns, regexp.MustCompile(
-		fmt.Sprintf(`(monitor\."%s"\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
-	))
-
-	// Try each pattern
-	newValue := strconv.FormatInt(gapSize, 10)
-	replaced := false
-
-	for _, pattern := range patterns {
-		if pattern.MatchString(c.content) {
-			c.content = pattern.ReplaceAllString(c.content, "${1}"+newValue)
-			replaced = true
-		}
-	}
-
-	if !replaced {
-		return fmt.Errorf("monitor %q not found in config", monitorName)
-	}
-
-	return nil
-}
-
 // isSimpleKey returns true if the key doesn't need quoting in TOML.
 func isSimpleKey(s string) bool {
 	if s == "" {
@@ -217,11 +291,6 @@ func isSimpleKey(s string) bool {
 		}
 	}
 	return true
-}
-
-// Write writes the config back to disk atomically.
-func (c *AerospaceConfig) Write() error {
-	return WriteAtomic(c.Path, c.content)
 }
 
 // DefaultConfigPath returns the default path to aerospace.toml.
@@ -288,6 +357,3 @@ func ExpandPath(path string) string {
 	}
 	return path
 }
-
-// ErrMonitorNotFound indicates the specified monitor was not found in config.
-var ErrMonitorNotFound = errors.New("monitor not found in config")

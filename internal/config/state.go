@@ -41,6 +41,18 @@ func (ws *WorkspaceService) StatePath() string {
 	return ws.statePath
 }
 
+// Exists returns true if the state file exists.
+func (ws *WorkspaceService) Exists() (bool, error) {
+	_, err := os.Stat(ws.statePath)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, fmt.Errorf("stat state: %w", err)
+}
+
 // loadState loads the state from disk if not already loaded.
 func (ws *WorkspaceService) loadState() error {
 	if ws.state != nil {
