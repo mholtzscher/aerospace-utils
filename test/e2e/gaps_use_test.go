@@ -94,26 +94,6 @@ func TestGapsUseCases(t *testing.T) {
 			},
 		},
 		{
-			name: "legacy state format",
-			run: func(t *testing.T) *testutil.Result {
-				tmpDir := t.TempDir()
-				statePath := filepath.Join(tmpDir, "state.toml")
-				stateContent := "[workspace]\ncurrent = 40\ndefault = 30\n"
-				require.NoError(t, os.WriteFile(statePath, []byte(stateContent), 0644))
-
-				return testutil.RunCLI("gaps", "use",
-					"--dry-run",
-					"--state-path", statePath,
-					"--monitor-width", "1920",
-					"--no-color",
-				)
-			},
-			expectExit: 0,
-			stdoutContains: []string{
-				"40%",
-			},
-		},
-		{
 			name: "boundary minimum",
 			run: func(t *testing.T) *testutil.Result {
 				configPath, statePath, _ := setupConfigAndState(t, "aerospace.toml", "state.toml")

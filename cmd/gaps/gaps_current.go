@@ -29,18 +29,15 @@ func runCurrent(c *cobra.Command, args []string) error {
 	opts := cli.GetOptions()
 	out := output.New(opts.NoColor)
 
-	// Resolve paths
+	// Resolve config path
 	configPath := opts.ConfigPath
 	if configPath == "" {
 		configPath = config.DefaultConfigPath()
 	}
 	configPath = config.ExpandPath(configPath)
 
-	statePath := opts.StatePath
-	if statePath == "" {
-		statePath = config.DefaultStatePath()
-	}
-	statePath = config.ExpandPath(statePath)
+	// Create workspace service
+	stateSvc := config.NewWorkspaceService(opts.StatePath)
 
 	// Print config info
 	out.PrintHeader("Config")
@@ -62,14 +59,14 @@ func runCurrent(c *cobra.Command, args []string) error {
 
 	// Print state info
 	out.PrintHeader("State")
-	out.PrintPath("path", statePath)
+	out.PrintPath("path", stateSvc.StatePath())
 
-	if _, err := os.Stat(statePath); err == nil {
-		state, err := config.LoadState(statePath)
+	if _, err := os.Stat(stateSvc.StatePath()); err == nil {
+		monitors, err := stateSvc.Monitors()
 		if err != nil {
 			out.Error("  Error loading state: %v\n", err)
 		} else {
-			printStateSummary(out, state)
+			printMonitorsSummary(out, monitors)
 		}
 	} else {
 		out.Unset("  (file not found)\n")
@@ -106,13 +103,13 @@ func printConfigSummary(out *output.Printer, s config.Summary) {
 	}
 }
 
-func printStateSummary(out *output.Printer, s *config.WorkspaceState) {
-	if len(s.Monitors) == 0 {
+func printMonitorsSummary(out *output.Printer, monitors map[string]*config.MonitorState) {
+	if len(monitors) == 0 {
 		out.Unset("  (no monitors configured)\n")
 		return
 	}
 
-	for name, mon := range s.Monitors {
+	for name, mon := range monitors {
 		out.Label("  %s:\n", name)
 		out.Printf("    ")
 		out.PrintKeyValue("current", formatOptionalInt(mon.Current))

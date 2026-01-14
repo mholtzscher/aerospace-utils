@@ -54,27 +54,21 @@ func runUse(c *cobra.Command, args []string) error {
 		explicitPercent = &p
 	}
 
-	// Resolve paths
+	// Resolve config path
 	configPath := opts.ConfigPath
 	if configPath == "" {
 		configPath = config.DefaultConfigPath()
 	}
 	configPath = config.ExpandPath(configPath)
 
-	statePath := opts.StatePath
-	if statePath == "" {
-		statePath = config.DefaultStatePath()
-	}
-	statePath = config.ExpandPath(statePath)
+	// Create workspace service
+	stateSvc := config.NewWorkspaceService(opts.StatePath)
 
-	// Load state
-	state, err := config.LoadState(statePath)
+	// Resolve percentage
+	percentage, err := stateSvc.ResolvePercentage(opts.Monitor, explicitPercent)
 	if err != nil {
 		return fmt.Errorf("load state: %w", err)
 	}
-
-	// Resolve percentage
-	percentage := state.ResolvePercentage(opts.Monitor, explicitPercent)
 	if percentage == nil {
 		return errors.New("no percentage specified and no current/default set for this monitor")
 	}
@@ -120,8 +114,7 @@ func runUse(c *cobra.Command, args []string) error {
 	}
 
 	// Update state
-	state.Update(opts.Monitor, *percentage, setDefault)
-	if err := state.Write(); err != nil {
+	if err := stateSvc.Update(opts.Monitor, *percentage, setDefault); err != nil {
 		return fmt.Errorf("write state: %w", err)
 	}
 

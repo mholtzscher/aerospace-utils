@@ -43,22 +43,15 @@ func runAdjust(c *cobra.Command, args []string) error {
 
 	amount := adjustAmount
 
-	// Resolve state path
-	statePath := opts.StatePath
-	if statePath == "" {
-		statePath = config.DefaultStatePath()
-	}
-	statePath = config.ExpandPath(statePath)
+	// Create workspace service
+	stateSvc := config.NewWorkspaceService(opts.StatePath)
 
-	// Load state
-	state, err := config.LoadState(statePath)
+	// Get current percentage for this monitor
+	monState, err := stateSvc.GetMonitorState(opts.Monitor)
 	if err != nil {
 		return fmt.Errorf("load state: %w", err)
 	}
-
-	// Get current percentage for this monitor
-	monState := state.Monitors[opts.Monitor]
-	if monState == nil || monState.Current == nil {
+	if monState.Current == nil {
 		return errors.New("no current percentage set; use 'gaps use' first")
 	}
 
