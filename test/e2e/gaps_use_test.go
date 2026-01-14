@@ -55,6 +55,50 @@ func TestGapsUseDisplayUnavailableRequiresMonitorWidth(t *testing.T) {
 	assert.Contains(t, result.Stderr, "display detection not available")
 }
 
+func TestGapsUseDefaultPaths(t *testing.T) {
+	tmpDir := t.TempDir()
+	configDir := filepath.Join(tmpDir, ".config", "aerospace")
+	require.NoError(t, os.MkdirAll(configDir, 0755))
+
+	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(configDir, "aerospace.toml"), configData, 0644))
+
+	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(configDir, "workspace-size.toml"), stateData, 0644))
+
+	result := testutil.RunCLIWithEnv(
+		map[string]string{"HOME": tmpDir},
+		"gaps", "use",
+		"--dry-run",
+		"--monitor-width", "1920",
+		"--no-color",
+	)
+
+	assert.Equal(t, 0, result.ExitCode)
+	assert.Contains(t, result.Stdout, "50%")
+	assert.Contains(t, result.Stdout, "dry")
+}
+
+func TestGapsUseLegacyStateFormat(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "state.toml")
+
+	stateContent := "[workspace]\ncurrent = 40\ndefault = 30\n"
+	require.NoError(t, os.WriteFile(statePath, []byte(stateContent), 0644))
+
+	result := testutil.RunCLI("gaps", "use",
+		"--dry-run",
+		"--state-path", statePath,
+		"--monitor-width", "1920",
+		"--no-color",
+	)
+
+	assert.Equal(t, 0, result.ExitCode)
+	assert.Contains(t, result.Stdout, "40%")
+}
+
 func TestGapsUseBoundaryPercentages(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -371,6 +415,23 @@ func TestGapsUseInvalidConfig(t *testing.T) {
 
 	assert.NotEqual(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stderr, "load config")
+}
+
+func TestGapsUseInvalidStateFormat(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "state.toml")
+
+	require.NoError(t, os.WriteFile(statePath, []byte("not=toml"), 0644))
+
+	result := testutil.RunCLI("gaps", "use",
+		"--state-path", statePath,
+		"--monitor-width", "1920",
+		"--no-color",
+		"50",
+	)
+
+	assert.NotEqual(t, 0, result.ExitCode)
+	assert.Contains(t, result.Stderr, "load state")
 }
 
 func TestGapsUseReloadMissingAerospace(t *testing.T) {

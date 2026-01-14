@@ -42,6 +42,33 @@ func TestGapsCurrent(t *testing.T) {
 	assert.Contains(t, result.Stdout, "default: 50")
 }
 
+func TestGapsCurrentDefaultPaths(t *testing.T) {
+	tmpDir := t.TempDir()
+	configDir := filepath.Join(tmpDir, ".config", "aerospace")
+	require.NoError(t, os.MkdirAll(configDir, 0755))
+
+	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
+	require.NoError(t, err)
+	configPath := filepath.Join(configDir, "aerospace.toml")
+	require.NoError(t, os.WriteFile(configPath, configData, 0644))
+
+	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
+	require.NoError(t, err)
+	statePath := filepath.Join(configDir, "workspace-size.toml")
+	require.NoError(t, os.WriteFile(statePath, stateData, 0644))
+
+	result := testutil.RunCLIWithEnv(
+		map[string]string{"HOME": tmpDir},
+		"gaps", "current",
+		"--no-color",
+	)
+
+	assert.Equal(t, 0, result.ExitCode)
+	assert.Contains(t, result.Stdout, "path: "+configPath)
+	assert.Contains(t, result.Stdout, "path: "+statePath)
+	assert.Contains(t, result.Stdout, "current: 50")
+}
+
 func TestGapsCurrentMissingConfig(t *testing.T) {
 	result := testutil.RunCLI("gaps", "current",
 		"--config-path", "/nonexistent/path/aerospace.toml",
@@ -71,6 +98,22 @@ func TestGapsCurrentInvalidConfig(t *testing.T) {
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stdout, "Error loading config")
 	assert.Contains(t, result.Stdout, "(file not found)")
+}
+
+func TestGapsCurrentInvalidStateFormat(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "state.toml")
+
+	require.NoError(t, os.WriteFile(statePath, []byte("not=toml"), 0644))
+
+	result := testutil.RunCLI("gaps", "current",
+		"--config-path", testdataPath(t, "aerospace.toml"),
+		"--state-path", statePath,
+		"--no-color",
+	)
+
+	assert.Equal(t, 0, result.ExitCode)
+	assert.Contains(t, result.Stdout, "Error loading state")
 }
 
 func TestGapsCurrentMultiMonitor(t *testing.T) {

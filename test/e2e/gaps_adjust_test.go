@@ -118,6 +118,28 @@ func TestGapsAdjustDefault(t *testing.T) {
 	assert.Contains(t, result.Stdout, "432px")
 }
 
+func TestGapsAdjustDefaultStatePath(t *testing.T) {
+	tmpDir := t.TempDir()
+	configDir := filepath.Join(tmpDir, ".config", "aerospace")
+	require.NoError(t, os.MkdirAll(configDir, 0755))
+
+	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(configDir, "workspace-size.toml"), stateData, 0644))
+
+	result := testutil.RunCLIWithEnv(
+		map[string]string{"HOME": tmpDir},
+		"gaps", "adjust",
+		"--dry-run",
+		"--monitor-width", "1920",
+		"--no-color",
+	)
+
+	assert.Equal(t, 0, result.ExitCode)
+	assert.Contains(t, result.Stdout, "55%")
+	assert.Contains(t, result.Stdout, "432px")
+}
+
 func TestGapsAdjustNoState(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -134,6 +156,22 @@ func TestGapsAdjustNoState(t *testing.T) {
 
 	assert.NotEqual(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stderr, "no current percentage")
+}
+
+func TestGapsAdjustInvalidStateFormat(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "state.toml")
+
+	require.NoError(t, os.WriteFile(statePath, []byte("not=toml"), 0644))
+
+	result := testutil.RunCLI("gaps", "adjust",
+		"--state-path", statePath,
+		"--monitor-width", "1920",
+		"--no-color",
+	)
+
+	assert.NotEqual(t, 0, result.ExitCode)
+	assert.Contains(t, result.Stderr, "load state")
 }
 
 func TestGapsAdjustOverflow(t *testing.T) {
