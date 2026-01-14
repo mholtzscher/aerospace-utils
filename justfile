@@ -7,54 +7,54 @@ default:
 
 # Build the binary (development)
 build:
-    nix develop -c go build
+    go build
 
 # Build the binary (release, stripped)
 build-release:
-    nix develop -c go build -ldflags="-s -w"
+    go build -ldflags="-s -w"
 
 # Run the binary with arguments
 run *ARGS:
-    nix develop -c go run . -- {{ARGS}}
+    go run . -- {{ARGS}}
 
 # Run all tests
 test:
-    nix develop -c go test ./...
+    go test ./...
 
 # Run tests with verbose output
 test-verbose:
-    nix develop -c go test -v ./...
+    go test -v ./...
 
 # Run a specific test by name
 test-run NAME:
-    nix develop -c go test -run {{NAME}} ./...
+    go test -run {{NAME}} ./...
 
 # Run tests for a specific package
 test-pkg PKG:
-    nix develop -c go test ./{{PKG}}
+    go test ./{{PKG}}
 
 # Format code
 fmt:
-    nix develop -c go fmt ./...
+    go fmt ./...
 
 # Run static analysis
 vet:
-    nix develop -c go vet ./...
+    go vet ./...
 
 # Run comprehensive linting
 lint:
-    nix develop -c golangci-lint run
+    golangci-lint run
 
 # Run all checks (format, vet, lint, test)
 check: fmt vet lint test
 
 # Tidy go modules
 tidy:
-    nix develop -c go mod tidy
+    go mod tidy
 
 # Update gomod2nix.toml after dependency changes
 gomod2nix:
-    nix develop -c gomod2nix
+    gomod2nix
 
 # Build with nix
 nix-build:

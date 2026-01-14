@@ -13,33 +13,31 @@ A small CLI for adjusting Aerospace workspace gaps based on monitor size.
 
 ## Commands
 
-Prefer Nix tooling when available.
+Uses direnv with nix flake for automatic environment setup.
 
 ```bash
 # Build
-nix develop -c go build                       # dev build
-nix develop -c go build -ldflags="-s -w"      # release build
+go build                       # dev build
+go build -ldflags="-s -w"      # release build
 
 # Run
-nix develop -c go run . -- <args>             # run locally
+go run . -- <args>             # run locally
 
 # Test
-nix develop -c go test ./...                  # all tests
-nix develop -c go test ./internal/gaps        # single package
-nix develop -c go test -v ./...               # verbose output
-nix develop -c go test -run TestName ./...    # single test
+go test ./...                  # all tests
+go test ./internal/gaps        # single package
+go test -v ./...               # verbose output
+go test -run TestName ./...    # single test
 
 # Lint/format
-nix develop -c go fmt ./...                   # format code
-nix develop -c go vet ./...                   # static analysis
-nix develop -c golangci-lint run              # comprehensive linting
+go fmt ./...                   # format code
+go vet ./...                   # static analysis
+golangci-lint run              # comprehensive linting
 
 # Nix build/run
-nix build                                     # build package
-nix run                                       # run package
+nix build                      # build package
+nix run                        # run package
 ```
-
-If you are not using Nix, run the same `go` commands directly.
 
 ## Project Structure
 
