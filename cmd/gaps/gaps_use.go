@@ -95,58 +95,55 @@ func runUse(c *cobra.Command, args []string) error {
 
 	if opts.DryRun {
 		out.DryRun()
-		out.Printf("Setting %s to %d%% (%dpx gaps on %dpx monitor)\n",
-			opts.Monitor, *percentage, gapSize, monitorWidth)
+		out.Printf("Would set %s to %d%% (%dpx gaps)\n",
+			opts.Monitor, *percentage, gapSize)
+		return nil
 	}
 
-	// Update config and state
-	if !opts.DryRun {
-		// Check if config exists
-		if _, err := os.Stat(configPath); os.IsNotExist(err) {
-			return fmt.Errorf("config file not found: %s\nCreate it manually or run 'aerospace' to generate a default config", configPath)
-		}
+	// Check if config exists
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return fmt.Errorf("config file not found: %s\nCreate it manually or run 'aerospace' to generate a default config", configPath)
+	}
 
-		// Load and update config
-		cfg, err := config.LoadAerospaceConfig(configPath)
+	// Load and update config
+	cfg, err := config.LoadAerospaceConfig(configPath)
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+
+	if err := cfg.SetMonitorGaps(opts.Monitor, gapSize); err != nil {
+		return fmt.Errorf("update config: %w", err)
+	}
+
+	if err := cfg.Write(); err != nil {
+		return fmt.Errorf("write config: %w", err)
+	}
+
+	// Update state
+	state.Update(opts.Monitor, *percentage, setDefault)
+	if err := state.Write(); err != nil {
+		return fmt.Errorf("write state: %w", err)
+	}
+
+	// Reload aerospace config and build single-line output
+	reloadStatus := ""
+	if !opts.NoReload {
+		bin, err := aerospace.FindBinary()
 		if err != nil {
-			return fmt.Errorf("load config: %w", err)
+			reloadStatus = " (aerospace not found)"
+		} else if err := bin.ReloadConfig(); err != nil {
+			reloadStatus = fmt.Sprintf(" (reload failed: %v)", err)
 		}
-
-		if err := cfg.SetMonitorGaps(opts.Monitor, gapSize); err != nil {
-			return fmt.Errorf("update config: %w", err)
-		}
-
-		if err := cfg.Write(); err != nil {
-			return fmt.Errorf("write config: %w", err)
-		}
-
-		defaultSuffix := ""
-		if setDefault {
-			defaultSuffix = " (set as default)"
-		}
-		out.Success("Set %s to %d%% (%dpx gaps on %dpx monitor)%s\n",
-			opts.Monitor, *percentage, gapSize, monitorWidth, defaultSuffix)
-
-		// Update state
-		state.Update(opts.Monitor, *percentage, setDefault)
-		if err := state.Write(); err != nil {
-			return fmt.Errorf("write state: %w", err)
-		}
-
-		// Reload aerospace config
-		if !opts.NoReload {
-			bin, err := aerospace.FindBinary()
-			if err != nil {
-				out.Warning("aerospace not found, skipping reload\n")
-			} else if err := bin.ReloadConfig(); err != nil {
-				out.ReloadFailed(err)
-			} else {
-				out.ReloadOK()
-			}
-		} else {
-			out.ReloadSkipped()
-		}
+	} else {
+		reloadStatus = " (reload skipped)"
 	}
+
+	defaultSuffix := ""
+	if setDefault {
+		defaultSuffix = ", set as default"
+	}
+	out.Success("Set %s to %d%% (%dpx gaps)%s%s\n",
+		opts.Monitor, *percentage, gapSize, defaultSuffix, reloadStatus)
 
 	return nil
 }
