@@ -3,7 +3,6 @@ package gaps
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
 	"github.com/mholtzscher/aerospace-utils/internal/config"
@@ -11,8 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var adjustAmount int64
+
 var adjustCmd = &cobra.Command{
-	Use:   "adjust [amount]",
+	Use:   "adjust",
 	Short: "Adjust workspace size by amount",
 	Long: `Adjust the workspace size percentage by a given amount.
 
@@ -21,33 +22,26 @@ Negative values decrease the workspace size (larger gaps).
 Default adjustment is +5.
 
 Examples:
-  aerospace-utils gaps adjust      # +5%
-  aerospace-utils gaps adjust 10   # +10%
-  aerospace-utils gaps adjust -5   # -5%
-  aerospace-utils gaps adjust -10 --monitor "Dell U2722D"`,
-	Args: cobra.MaximumNArgs(1),
+  aerospace-utils gaps adjust           # +5%
+  aerospace-utils gaps adjust -b 10     # +10%
+  aerospace-utils gaps adjust -b -5     # -5%
+  aerospace-utils gaps adjust --by=-10  # -10%
+  aerospace-utils gaps adjust -b -10 --monitor "Dell U2722D"`,
+	Args: cobra.NoArgs,
 	RunE: runAdjust,
 }
 
 func init() {
 	Cmd.AddCommand(adjustCmd)
 
-	// Allow negative numbers as arguments (e.g., -5)
-	adjustCmd.Flags().SetInterspersed(false)
+	adjustCmd.Flags().Int64VarP(&adjustAmount, "by", "b", 5,
+		"Amount to adjust workspace size percentage (positive or negative)")
 }
 
 func runAdjust(c *cobra.Command, args []string) error {
 	opts := cli.GetOptions()
 
-	// Parse adjustment amount (default: 5)
-	amount := int64(5)
-	if len(args) > 0 {
-		a, err := strconv.ParseInt(args[0], 10, 64)
-		if err != nil {
-			return fmt.Errorf("invalid amount %q: %w", args[0], err)
-		}
-		amount = a
-	}
+	amount := adjustAmount
 
 	// Resolve state path
 	statePath := opts.StatePath

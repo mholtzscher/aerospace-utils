@@ -42,11 +42,15 @@ aerospace-utils gaps use 80 --set-default
 Incrementally increase or decrease the current workspace size.
 
 ```bash
-# Increase workspace width by 5%
-aerospace-utils gaps adjust 5
+# Increase workspace width by 5% (default)
+aerospace-utils gaps adjust
+
+# Increase workspace width by 10%
+aerospace-utils gaps adjust -b 10
 
 # Decrease workspace width by 5%
-aerospace-utils gaps adjust -5
+aerospace-utils gaps adjust -b -5
+aerospace-utils gaps adjust --by=-5
 ```
 
 ### View Configuration
