@@ -32,6 +32,57 @@
         darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
           pkgs.apple-sdk_15
         ];
+        # Dev scripts (replaces justfile)
+        scripts = {
+          dev-build = pkgs.writeShellScriptBin "dev-build" ''
+            echo "Building (development)..."
+            go build
+          '';
+
+          dev-build-release = pkgs.writeShellScriptBin "dev-build-release" ''
+            echo "Building (release)..."
+            go build -ldflags="-s -w"
+          '';
+
+          dev-run = pkgs.writeShellScriptBin "dev-run" ''
+            go run . "$@"
+          '';
+
+          dev-test = pkgs.writeShellScriptBin "dev-test" ''
+            go test ./...
+          '';
+
+          dev-test-verbose = pkgs.writeShellScriptBin "dev-test-verbose" ''
+            go test -v ./...
+          '';
+
+          dev-fmt = pkgs.writeShellScriptBin "dev-fmt" ''
+            go fmt ./...
+          '';
+
+          dev-vet = pkgs.writeShellScriptBin "dev-vet" ''
+            go vet ./...
+          '';
+
+          dev-lint = pkgs.writeShellScriptBin "dev-lint" ''
+            golangci-lint run
+          '';
+
+          dev-check = pkgs.writeShellScriptBin "dev-check" ''
+            echo "Formatting..."
+            go fmt ./...
+            echo "Vetting..."
+            go vet ./...
+            echo "Linting..."
+            golangci-lint run
+            echo "Testing..."
+            go test ./...
+          '';
+
+          dev-tidy = pkgs.writeShellScriptBin "dev-tidy" ''
+            go mod tidy
+          '';
+        };
       in
       {
         packages.default = pkgs.buildGoApplication {
@@ -70,7 +121,8 @@
             pkgs.gotools
             pkgs.gomod2nix
           ]
-          ++ darwinBuildInputs;
+          ++ darwinBuildInputs
+          ++ (builtins.attrValues scripts);
 
           CGO_ENABLED = "1";
         };
