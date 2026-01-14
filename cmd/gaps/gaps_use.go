@@ -92,10 +92,8 @@ func runUse(c *cobra.Command, args []string) error {
 	// Calculate gap size
 	gapSize := gaps.CalculateGapSize(monitorWidth, *percentage)
 
-	if opts.Verbose || opts.DryRun {
-		if opts.DryRun {
-			out.DryRun()
-		}
+	if opts.DryRun {
+		out.DryRun()
 		out.Printf("Setting %s to %d%% (%dpx gaps on %dpx monitor)\n",
 			opts.Monitor, *percentage, gapSize, monitorWidth)
 	}
@@ -116,6 +114,13 @@ func runUse(c *cobra.Command, args []string) error {
 			return fmt.Errorf("write config: %w", err)
 		}
 
+		defaultSuffix := ""
+		if setDefault {
+			defaultSuffix = " (set as default)"
+		}
+		out.Success("Set %s to %d%% (%dpx gaps on %dpx monitor)%s\n",
+			opts.Monitor, *percentage, gapSize, monitorWidth, defaultSuffix)
+
 		// Update state
 		state.Update(opts.Monitor, *percentage, setDefault)
 		if err := state.Write(); err != nil {
@@ -132,7 +137,7 @@ func runUse(c *cobra.Command, args []string) error {
 			} else {
 				out.ReloadOK()
 			}
-		} else if opts.Verbose {
+		} else {
 			out.ReloadSkipped()
 		}
 	}
