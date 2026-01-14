@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/mholtzscher/aerospace-utils/cmd/gaps"
@@ -48,7 +49,9 @@ func init() {
 		"Disable colored output")
 
 	// Hide the monitor-width flag (for testing/advanced use)
-	rootCmd.PersistentFlags().MarkHidden("monitor-width")
+	if err := rootCmd.PersistentFlags().MarkHidden("monitor-width"); err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to hide monitor-width flag:", err)
+	}
 
 	// Add subcommands
 	rootCmd.AddCommand(gaps.Cmd)

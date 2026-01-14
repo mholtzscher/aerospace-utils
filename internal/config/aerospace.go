@@ -211,8 +211,8 @@ func isSimpleKey(s string) bool {
 		return false
 	}
 	for _, r := range s {
-		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
-			(r >= '0' && r <= '9') || r == '_' || r == '-') {
+		if (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') &&
+			(r < '0' || r > '9') && r != '_' && r != '-' {
 			return false
 		}
 	}
@@ -251,12 +251,16 @@ func WriteAtomic(path, content string) error {
 	success := false
 	defer func() {
 		if !success {
-			os.Remove(tmpPath)
+			if err := os.Remove(tmpPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+				fmt.Fprintln(os.Stderr, "Failed to remove temp file:", err)
+			}
 		}
 	}()
 
 	if _, err := tmp.WriteString(content); err != nil {
-		tmp.Close()
+		if closeErr := tmp.Close(); closeErr != nil {
+			return fmt.Errorf("write temp file: %w; close temp file: %v", err, closeErr)
+		}
 		return fmt.Errorf("write temp file: %w", err)
 	}
 

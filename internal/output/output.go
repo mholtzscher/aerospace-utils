@@ -39,37 +39,37 @@ func New(noColor bool) *Printer {
 
 // Label prints a cyan label.
 func (p *Printer) Label(format string, a ...interface{}) {
-	p.label.Printf(format, a...)
+	_, _ = p.label.Printf(format, a...)
 }
 
 // Value prints a green value.
 func (p *Printer) Value(format string, a ...interface{}) {
-	p.value.Printf(format, a...)
+	_, _ = p.value.Printf(format, a...)
 }
 
 // Path prints a dimmed path.
 func (p *Printer) Path(format string, a ...interface{}) {
-	p.path.Printf(format, a...)
+	_, _ = p.path.Printf(format, a...)
 }
 
 // Unset prints a yellow "unset" indicator.
 func (p *Printer) Unset(format string, a ...interface{}) {
-	p.unset.Printf(format, a...)
+	_, _ = p.unset.Printf(format, a...)
 }
 
 // Success prints a green success message.
 func (p *Printer) Success(format string, a ...interface{}) {
-	p.success.Printf(format, a...)
+	_, _ = p.success.Printf(format, a...)
 }
 
 // Warning prints a yellow warning message.
 func (p *Printer) Warning(format string, a ...interface{}) {
-	p.warning.Printf(format, a...)
+	_, _ = p.warning.Printf(format, a...)
 }
 
 // Error prints a red error message.
 func (p *Printer) Error(format string, a ...interface{}) {
-	p.err.Printf(format, a...)
+	_, _ = p.err.Printf(format, a...)
 }
 
 // ReloadOK prints a success message for config reload.
