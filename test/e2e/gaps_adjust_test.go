@@ -236,6 +236,67 @@ func TestGapsAdjustUnknownMonitorNoState(t *testing.T) {
 	assert.Contains(t, result.Stderr, "no current percentage")
 }
 
+func TestGapsAdjustReloadMissingAerospace(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
+	require.NoError(t, err)
+	configPath := filepath.Join(tmpDir, "aerospace.toml")
+	require.NoError(t, os.WriteFile(configPath, configData, 0644))
+
+	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
+	require.NoError(t, err)
+	statePath := filepath.Join(tmpDir, "state.toml")
+	require.NoError(t, os.WriteFile(statePath, stateData, 0644))
+
+	result := testutil.RunCLIWithEnv(
+		map[string]string{"PATH": ""},
+		"gaps", "adjust",
+		"--config-path", configPath,
+		"--state-path", statePath,
+		"--monitor-width", "1920",
+		"--no-color",
+		"--by=10",
+	)
+
+	assert.Equal(t, 0, result.ExitCode)
+	assert.Contains(t, result.Stdout, "aerospace not found")
+}
+
+func TestGapsAdjustReloadFailure(t *testing.T) {
+	tmpDir := t.TempDir()
+	binDir := filepath.Join(tmpDir, "bin")
+	require.NoError(t, os.MkdirAll(binDir, 0755))
+
+	fakeBinary := filepath.Join(binDir, "aerospace")
+	fakeScript := "#!/bin/sh\necho boom\nexit 1\n"
+	require.NoError(t, os.WriteFile(fakeBinary, []byte(fakeScript), 0755))
+
+	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
+	require.NoError(t, err)
+	configPath := filepath.Join(tmpDir, "aerospace.toml")
+	require.NoError(t, os.WriteFile(configPath, configData, 0644))
+
+	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
+	require.NoError(t, err)
+	statePath := filepath.Join(tmpDir, "state.toml")
+	require.NoError(t, os.WriteFile(statePath, stateData, 0644))
+
+	result := testutil.RunCLIWithEnv(
+		map[string]string{"PATH": binDir},
+		"gaps", "adjust",
+		"--config-path", configPath,
+		"--state-path", statePath,
+		"--monitor-width", "1920",
+		"--no-color",
+		"--by=10",
+	)
+
+	assert.Equal(t, 0, result.ExitCode)
+	assert.Contains(t, result.Stdout, "reload failed")
+	assert.Contains(t, result.Stdout, "boom")
+}
+
 func TestGapsAdjustActualWrite(t *testing.T) {
 	tmpDir := t.TempDir()
 
