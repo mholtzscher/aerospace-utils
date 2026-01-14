@@ -3,6 +3,7 @@ package gaps
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -100,6 +101,11 @@ func runUse(c *cobra.Command, args []string) error {
 
 	// Update config and state
 	if !opts.DryRun {
+		// Check if config exists
+		if _, err := os.Stat(configPath); os.IsNotExist(err) {
+			return fmt.Errorf("config file not found: %s\nCreate it manually or run 'aerospace' to generate a default config", configPath)
+		}
+
 		// Load and update config
 		cfg, err := config.LoadAerospaceConfig(configPath)
 		if err != nil {
