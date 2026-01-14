@@ -13,9 +13,9 @@ build:
 build-release:
     go build -ldflags="-s -w"
 
-# Run the binary with arguments
+# Run the binary with arguments (use `just -- run <args>` for flags)
 run *ARGS:
-    go run . -- {{ARGS}}
+    go run . {{ARGS}}
 
 # Run all tests
 test:
