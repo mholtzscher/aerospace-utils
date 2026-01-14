@@ -29,14 +29,9 @@
         version = "0.2.0";
 
         # macOS-specific build inputs for CoreGraphics CGO bindings
-        darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin (
-          with pkgs.apple-sdk.frameworks;
-          [
-            CoreGraphics
-            IOKit
-            CoreFoundation
-          ]
-        );
+        darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
+          pkgs.apple-sdk_15
+        ];
       in
       {
         packages.default = pkgs.buildGoApplication {
