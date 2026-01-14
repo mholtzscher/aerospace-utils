@@ -73,6 +73,7 @@ func TestNoColorEnvVar(t *testing.T) {
 	)
 
 	assert.Equal(t, 0, result.ExitCode)
+	assert.NotContains(t, result.Stdout, "\x1b[")
 }
 
 func TestVerboseFlag(t *testing.T) {

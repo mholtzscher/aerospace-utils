@@ -3,6 +3,7 @@ package e2e
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/mholtzscher/aerospace-utils/internal/testutil"
@@ -41,6 +42,8 @@ func TestGapsAdjustDryRun(t *testing.T) {
 
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stdout, "dry")
+	assert.Contains(t, result.Stdout, "60%")
+	assert.Contains(t, result.Stdout, "384px")
 
 	afterConfig, err := os.ReadFile(configPath)
 	require.NoError(t, err)
@@ -49,13 +52,14 @@ func TestGapsAdjustDryRun(t *testing.T) {
 
 func TestGapsAdjustByFlag(t *testing.T) {
 	tests := []struct {
-		name   string
-		flag   string
-		expect int
+		name           string
+		flag           string
+		expect         int
+		expectedOutput string
 	}{
-		{"positive", "--by=10", 0},
-		{"negative", "--by=-10", 0},
-		{"short flag", "-b", 0},
+		{"positive", "--by=10", 0, "60%"},
+		{"negative", "--by=-10", 0, "40%"},
+		{"short flag", "-b", 0, "55%"},
 	}
 
 	for _, tt := range tests {
@@ -85,6 +89,7 @@ func TestGapsAdjustByFlag(t *testing.T) {
 
 			result := testutil.RunCLI(args...)
 			assert.Equal(t, tt.expect, result.ExitCode)
+			assert.Contains(t, result.Stdout, tt.expectedOutput)
 		})
 	}
 }
@@ -110,6 +115,7 @@ func TestGapsAdjustDefault(t *testing.T) {
 
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stdout, "55%") // 50 + default 5
+	assert.Contains(t, result.Stdout, "432px")
 }
 
 func TestGapsAdjustNoState(t *testing.T) {
@@ -203,6 +209,7 @@ func TestGapsAdjustWithMonitor(t *testing.T) {
 	assert.Contains(t, result.Stdout, "Built-in Retina Display")
 	// State has current=75 for Built-in Retina Display, so 75+10=85%
 	assert.Contains(t, result.Stdout, "85%")
+	assert.Contains(t, result.Stdout, "192px")
 }
 
 func TestGapsAdjustUnknownMonitorNoState(t *testing.T) {
@@ -258,9 +265,12 @@ func TestGapsAdjustActualWrite(t *testing.T) {
 	afterConfig, err := os.ReadFile(configPath)
 	require.NoError(t, err)
 	assert.NotEqual(t, string(configData), string(afterConfig))
+	assert.Contains(t, string(afterConfig), "monitor.main = 384")
+	assert.GreaterOrEqual(t, strings.Count(string(afterConfig), "monitor.main = 384"), 2)
 
 	// Verify state was updated to 60 (50 + 10)
 	afterState, err := os.ReadFile(statePath)
 	require.NoError(t, err)
-	assert.Contains(t, string(afterState), "60")
+	assert.Contains(t, string(afterState), "current = 60")
+	assert.Contains(t, string(afterState), "default = 50")
 }

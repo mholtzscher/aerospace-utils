@@ -3,6 +3,7 @@ package e2e
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/mholtzscher/aerospace-utils/internal/testutil"
@@ -30,6 +31,15 @@ func TestGapsCurrent(t *testing.T) {
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stdout, "Config")
 	assert.Contains(t, result.Stdout, "State")
+	assert.Contains(t, result.Stdout, "path: "+configPath)
+	assert.Contains(t, result.Stdout, "path: "+statePath)
+	assert.Contains(t, result.Stdout, "horizontal: 10")
+	assert.Contains(t, result.Stdout, "vertical: 10")
+	assert.Contains(t, result.Stdout, "top: 10")
+	assert.Contains(t, result.Stdout, "bottom: 10")
+	assert.Contains(t, result.Stdout, "main: 100")
+	assert.Contains(t, result.Stdout, "current: 50")
+	assert.Contains(t, result.Stdout, "default: 50")
 }
 
 func TestGapsCurrentMissingConfig(t *testing.T) {
@@ -40,7 +50,8 @@ func TestGapsCurrentMissingConfig(t *testing.T) {
 	)
 
 	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "not found")
+	assert.Contains(t, result.Stdout, "(file not found)")
+	assert.GreaterOrEqual(t, strings.Count(result.Stdout, "(file not found)"), 2)
 }
 
 func TestGapsCurrentInvalidConfig(t *testing.T) {
@@ -58,7 +69,8 @@ func TestGapsCurrentInvalidConfig(t *testing.T) {
 
 	// current should succeed but show error loading config
 	assert.Equal(t, 0, result.ExitCode)
-	assert.Contains(t, result.Stdout, "Error")
+	assert.Contains(t, result.Stdout, "Error loading config")
+	assert.Contains(t, result.Stdout, "(file not found)")
 }
 
 func TestGapsCurrentMultiMonitor(t *testing.T) {
@@ -82,6 +94,10 @@ func TestGapsCurrentMultiMonitor(t *testing.T) {
 	// Should show multiple monitors in config
 	assert.Contains(t, result.Stdout, "Built-in Retina Display")
 	assert.Contains(t, result.Stdout, "LG UltraFine")
+	assert.Contains(t, result.Stdout, "Built-in Retina Display: 200")
+	assert.Contains(t, result.Stdout, "LG UltraFine: 150")
 	// Should show state for multiple monitors
 	assert.Contains(t, result.Stdout, "main")
+	assert.Contains(t, result.Stdout, "current: 75")
+	assert.Contains(t, result.Stdout, "default: 60")
 }

@@ -3,6 +3,7 @@ package e2e
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/mholtzscher/aerospace-utils/internal/testutil"
@@ -97,6 +98,8 @@ func TestGapsUseDryRun(t *testing.T) {
 
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stdout, "dry")
+	assert.Contains(t, result.Stdout, "50%")
+	assert.Contains(t, result.Stdout, "480px")
 
 	afterConfig, err := os.ReadFile(configPath)
 	require.NoError(t, err)
@@ -124,6 +127,7 @@ func TestGapsUseFromState(t *testing.T) {
 
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stdout, "50%") // uses current from state
+	assert.Contains(t, result.Stdout, "480px")
 }
 
 func TestGapsUseNoPercentageNoState(t *testing.T) {
@@ -166,6 +170,7 @@ func TestGapsUseDefaultFallback(t *testing.T) {
 	// Should use the default percentage (75%)
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stdout, "75%")
+	assert.Contains(t, result.Stdout, "240px")
 }
 
 func TestGapsUseEmptyState(t *testing.T) {
@@ -190,6 +195,7 @@ func TestGapsUseEmptyState(t *testing.T) {
 
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stdout, "50%")
+	assert.Contains(t, result.Stdout, "480px")
 }
 
 func TestGapsUseEmptyStateNoPercentage(t *testing.T) {
@@ -219,17 +225,19 @@ func TestGapsUseSetDefault(t *testing.T) {
 
 	configData, err := os.ReadFile(testdataPath(t, "aerospace.toml"))
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "aerospace.toml"), configData, 0644))
+	configPath := filepath.Join(tmpDir, "aerospace.toml")
+	require.NoError(t, os.WriteFile(configPath, configData, 0644))
 
 	stateData, err := os.ReadFile(testdataPath(t, "state.toml"))
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "state.toml"), stateData, 0644))
+	statePath := filepath.Join(tmpDir, "state.toml")
+	require.NoError(t, os.WriteFile(statePath, stateData, 0644))
 
 	result := testutil.RunCLI("gaps", "use",
-		"--dry-run",
+		"--no-reload",
 		"--set-default",
-		"--config-path", filepath.Join(tmpDir, "aerospace.toml"),
-		"--state-path", filepath.Join(tmpDir, "state.toml"),
+		"--config-path", configPath,
+		"--state-path", statePath,
 		"--monitor-width", "1920",
 		"--no-color",
 		"75",
@@ -237,6 +245,16 @@ func TestGapsUseSetDefault(t *testing.T) {
 
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Contains(t, result.Stdout, "75%")
+
+	afterConfig, err := os.ReadFile(configPath)
+	require.NoError(t, err)
+	assert.Contains(t, string(afterConfig), "monitor.main = 240")
+	assert.GreaterOrEqual(t, strings.Count(string(afterConfig), "monitor.main = 240"), 2)
+
+	afterState, err := os.ReadFile(statePath)
+	require.NoError(t, err)
+	assert.Contains(t, string(afterState), "current = 75")
+	assert.Contains(t, string(afterState), "default = 75")
 }
 
 func TestGapsUseNoReload(t *testing.T) {
@@ -335,6 +353,7 @@ func TestGapsUseInvalidConfig(t *testing.T) {
 	)
 
 	assert.NotEqual(t, 0, result.ExitCode)
+	assert.Contains(t, result.Stderr, "load config")
 }
 
 func TestGapsUseActualWrite(t *testing.T) {
@@ -366,11 +385,14 @@ func TestGapsUseActualWrite(t *testing.T) {
 	afterConfig, err := os.ReadFile(configPath)
 	require.NoError(t, err)
 	assert.NotEqual(t, string(configData), string(afterConfig))
+	assert.Contains(t, string(afterConfig), "monitor.main = 384")
+	assert.GreaterOrEqual(t, strings.Count(string(afterConfig), "monitor.main = 384"), 2)
 
 	// Verify state was actually modified
 	afterState, err := os.ReadFile(statePath)
 	require.NoError(t, err)
-	assert.Contains(t, string(afterState), "60")
+	assert.Contains(t, string(afterState), "current = 60")
+	assert.Contains(t, string(afterState), "default = 50")
 }
 
 func TestGapsUseWithAerospace(t *testing.T) {
