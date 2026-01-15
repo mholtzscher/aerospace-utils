@@ -67,6 +67,15 @@ func (e *BuildError) Error() string {
 	return e.Err.Error() + ": " + e.Output
 }
 
+// CLIPath returns the built CLI path. Call BuildCLI first.
+func CLIPath(t *testing.T) string {
+	t.Helper()
+	if binaryPath == "" {
+		t.Fatal("CLI binary not built - call BuildCLI first")
+	}
+	return binaryPath
+}
+
 // Cleanup removes the built binary. Call in TestMain after tests run.
 func Cleanup() {
 	if binaryPath != "" {

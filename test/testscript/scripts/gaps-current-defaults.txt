@@ -1,0 +1,9 @@
+# Default config/state paths via HOME.
+
+mkdir -p $WORK/.config/aerospace
+cp $AEROSPACE_TESTDATA/aerospace.toml $WORK/.config/aerospace/aerospace.toml
+cp $AEROSPACE_TESTDATA/state.toml $WORK/.config/aerospace/workspace-size.toml
+
+env HOME=$WORK
+exec aerospace-utils gaps current --no-color
+stdout 'current: 50'

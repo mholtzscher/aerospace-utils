@@ -1,0 +1,7 @@
+# Basic testscript integration for gaps current.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+cp $AEROSPACE_TESTDATA/state.toml state.toml
+
+exec aerospace-utils gaps current --config-path config.toml --state-path state.toml --no-color
+stdout 'current: 50'
