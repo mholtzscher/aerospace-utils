@@ -323,6 +323,32 @@ func TestGapsAdjustCases(t *testing.T) {
 			var configData []byte
 			var statePath string
 			return e2eCase{
+				name: "update keeps other config",
+				run: func(t *testing.T) *testutil.Result {
+					configPath, statePath, configData = setupConfigAndState(t, "aerospace-extra-config.toml", "state.toml")
+					return testutil.RunCLI("gaps", "adjust",
+						"--no-reload",
+						"--config-path", configPath,
+						"--state-path", statePath,
+						"--monitor-width", "1920",
+						"--no-color",
+						"--by=10",
+					)
+				},
+				expectExit: 0,
+				assert: func(t *testing.T, _ *testutil.Result) {
+					afterConfig, err := os.ReadFile(configPath)
+					require.NoError(t, err)
+					expectedConfig := strings.ReplaceAll(string(configData), "monitor.main = 100", "monitor.main = 384")
+					assert.Equal(t, expectedConfig, string(afterConfig))
+				},
+			}
+		}(),
+		func() e2eCase {
+			var configPath string
+			var configData []byte
+			var statePath string
+			return e2eCase{
 				name: "actual write",
 				run: func(t *testing.T) *testutil.Result {
 					configPath, statePath, configData = setupConfigAndState(t, "aerospace.toml", "state.toml")
