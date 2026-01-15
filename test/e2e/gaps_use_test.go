@@ -3,6 +3,7 @@ package e2e
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -53,6 +54,11 @@ func TestGapsUseCases(t *testing.T) {
 		{
 			name: "display unavailable without width",
 			run: func(t *testing.T) *testutil.Result {
+				// On macOS (darwin), CoreGraphics display detection is built-in
+				// and always available, so this test only applies to other platforms
+				if runtime.GOOS == "darwin" {
+					t.Skip("display detection is always available on macOS")
+				}
 				tmpDir := t.TempDir()
 				statePath := filepath.Join(tmpDir, "state.toml")
 				return testutil.RunCLIWithEnv(
