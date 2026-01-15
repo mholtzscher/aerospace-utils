@@ -200,10 +200,10 @@ type aerospaceConfigData struct {
 			Vertical   *int64 `toml:"vertical"`
 		} `toml:"inner"`
 		Outer struct {
-			Top    interface{} `toml:"top"`
-			Bottom interface{} `toml:"bottom"`
-			Left   interface{} `toml:"left"`
-			Right  interface{} `toml:"right"`
+			Top    any `toml:"top"`
+			Bottom any `toml:"bottom"`
+			Left   any `toml:"left"`
+			Right  any `toml:"right"`
 		} `toml:"outer"`
 	} `toml:"gaps"`
 }
@@ -225,14 +225,14 @@ type Summary struct {
 }
 
 // extractScalarGap extracts a scalar gap value from various possible types.
-func extractScalarGap(v interface{}) *int64 {
+func extractScalarGap(v any) *int64 {
 	switch val := v.(type) {
 	case int64:
 		return &val
 	case float64:
 		i := int64(val)
 		return &i
-	case []interface{}:
+	case []any:
 		// Array form - look for scalar default at the end
 		for i := len(val) - 1; i >= 0; i-- {
 			if scalar := extractScalarGap(val[i]); scalar != nil {
@@ -244,20 +244,20 @@ func extractScalarGap(v interface{}) *int64 {
 }
 
 // extractMonitorGaps extracts per-monitor gap values from an array.
-func extractMonitorGaps(v interface{}) []MonitorGap {
-	arr, ok := v.([]interface{})
+func extractMonitorGaps(v any) []MonitorGap {
+	arr, ok := v.([]any)
 	if !ok {
 		return nil
 	}
 
 	var gaps []MonitorGap
 	for _, item := range arr {
-		m, ok := item.(map[string]interface{})
+		m, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}
 
-		monitor, ok := m["monitor"].(map[string]interface{})
+		monitor, ok := m["monitor"].(map[string]any)
 		if !ok {
 			continue
 		}
