@@ -1,0 +1,5 @@
+# Root command help output.
+
+exec aerospace-utils --help
+stdout 'aerospace-utils'
+stdout 'gaps'
