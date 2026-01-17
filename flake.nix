@@ -82,6 +82,13 @@
           dev-tidy = pkgs.writeShellScriptBin "dev-tidy" ''
             go mod tidy
           '';
+
+          dev-update-deps = pkgs.writeShellScriptBin "dev-update-deps" ''
+            echo "Tidying Go modules..."
+            go mod tidy
+            echo "Regenerating gomod2nix.toml..."
+            gomod2nix > gomod2nix.toml
+          '';
         };
       in
       {
