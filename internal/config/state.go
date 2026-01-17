@@ -192,5 +192,5 @@ func DefaultStatePath() string {
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(home, ".config", "aerospace", "workspace-size.toml")
+	return filepath.Join(home, ".config", "aerospace", "aerospace-utils-state.toml")
 }

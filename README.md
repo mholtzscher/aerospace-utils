@@ -69,7 +69,7 @@ These options are available under `aerospace-utils gaps`.
 - `--verbose`: Show detailed processing information.
 - `--no-reload`: Skip the `aerospace reload-config` command after updating configuration.
 - `--config-path <PATH>`: Manually specify `aerospace.toml` path.
-- `--state-path <PATH>`: Manually specify `workspace-size.toml` path.
+- `--state-path <PATH>`: Manually specify `aerospace-utils-state.toml` path.
 
 #### Advanced / Debug Options
 - `--monitor-width <PX>`: Override automatic monitor width detection (useful for testing or non-macOS).
@@ -104,5 +104,5 @@ It updates the `[gaps.outer.left]` and `[gaps.outer.right]` settings for `monito
     *   It expects `[gaps.outer.left]` and `[gaps.outer.right]` to be arrays.
     *   It specifically targets the entry for `monitor.main` (conventionally the second item or an explicit table).
 
-2.  **`workspace-size.toml`**: Stores the current percentage and default preference.
-    *   Default location: `~/.config/aerospace/workspace-size.toml`
+2.  **`aerospace-utils-state.toml`**: Stores the current percentage and default preference.
+    *   Default location: `~/.config/aerospace/aerospace-utils-state.toml`

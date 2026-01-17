@@ -60,7 +60,7 @@ func TestGapsCurrentCases(t *testing.T) {
 				require.NoError(t, os.MkdirAll(configDir, 0755))
 
 				configPath := writeFixture(t, configDir, "aerospace.toml", "aerospace.toml")
-				statePath := writeFixture(t, configDir, "workspace-size.toml", "state.toml")
+				statePath := writeFixture(t, configDir, "aerospace-utils-state.toml", "state.toml")
 
 				result := testutil.RunCLIWithEnv(
 					map[string]string{"HOME": tmpDir},

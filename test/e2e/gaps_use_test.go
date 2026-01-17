@@ -83,7 +83,7 @@ func TestGapsUseCases(t *testing.T) {
 				require.NoError(t, os.MkdirAll(configDir, 0755))
 
 				writeFixture(t, configDir, "aerospace.toml", "aerospace.toml")
-				writeFixture(t, configDir, "workspace-size.toml", "state.toml")
+				writeFixture(t, configDir, "aerospace-utils-state.toml", "state.toml")
 
 				return testutil.RunCLIWithEnv(
 					map[string]string{"HOME": tmpDir},

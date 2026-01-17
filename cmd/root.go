@@ -34,7 +34,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&opts.ConfigPath, "config-path", "",
 		"Path to aerospace.toml (default: ~/.config/aerospace/aerospace.toml)")
 	rootCmd.PersistentFlags().StringVar(&opts.StatePath, "state-path", "",
-		"Path to workspace-size.toml (default: ~/.config/aerospace/workspace-size.toml)")
+		"Path to aerospace-utils-state.toml (default: ~/.config/aerospace/aerospace-utils-state.toml)")
 	rootCmd.PersistentFlags().StringVar(&opts.Monitor, "monitor", "main",
 		"Target monitor name")
 	rootCmd.PersistentFlags().Int64Var(&opts.MonitorWidth, "monitor-width", 0,
