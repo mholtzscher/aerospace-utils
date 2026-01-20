@@ -23,7 +23,7 @@ func TestScripts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get working dir: %v", err)
 	}
-	testdataDir := filepath.Clean(filepath.Join(cwd, "..", "e2e", "testdata"))
+	testdataDir := filepath.Clean(filepath.Join(cwd, "testdata"))
 
 	gotestscript.Run(t, gotestscript.Params{
 		Dir: "scripts",
