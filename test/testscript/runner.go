@@ -1,7 +1,6 @@
 package testscript
 
 import (
-	"bytes"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,13 +13,6 @@ var (
 	buildOnce  sync.Once
 	buildErr   error
 )
-
-// Result holds the output from running the CLI.
-type Result struct {
-	Stdout   string
-	Stderr   string
-	ExitCode int
-}
 
 // BuildCLI compiles the CLI binary once for all tests.
 // Call this in TestMain to build early and fail fast.
@@ -82,49 +74,6 @@ func Cleanup() {
 	}
 }
 
-// RunCLI executes the CLI with the given arguments.
-func RunCLI(args ...string) *Result {
-	return RunCLIWithEnv(nil, args...)
-}
-
-// RunCLIWithEnv executes the CLI with custom environment variables.
-func RunCLIWithEnv(env map[string]string, args ...string) *Result {
-	if binaryPath == "" {
-		return &Result{
-			Stderr:   "CLI binary not built - call BuildCLI first",
-			ExitCode: 1,
-		}
-	}
-
-	cmd := exec.Command(binaryPath, args...)
-
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	cmd.Env = os.Environ()
-	for k, v := range env {
-		cmd.Env = append(cmd.Env, k+"="+v)
-	}
-
-	err := cmd.Run()
-
-	result := &Result{
-		Stdout: stdout.String(),
-		Stderr: stderr.String(),
-	}
-
-	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			result.ExitCode = exitErr.ExitCode()
-		} else {
-			result.ExitCode = 1
-		}
-	}
-
-	return result
-}
-
 // findModuleRoot walks up from current dir to find go.mod.
 func findModuleRoot() (string, error) {
 	dir, err := os.Getwd()
@@ -142,19 +91,5 @@ func findModuleRoot() (string, error) {
 			return "", os.ErrNotExist
 		}
 		dir = parent
-	}
-}
-
-// HasAerospace checks if the aerospace binary is available.
-func HasAerospace() bool {
-	_, err := exec.LookPath("aerospace")
-	return err == nil
-}
-
-// SkipIfNoAerospace skips the test if aerospace is not available.
-func SkipIfNoAerospace(t *testing.T) {
-	t.Helper()
-	if !HasAerospace() {
-		t.Skip("aerospace binary not found in PATH")
 	}
 }
