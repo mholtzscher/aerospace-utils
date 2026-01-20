@@ -6,19 +6,18 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mholtzscher/aerospace-utils/internal/testutil"
 	gotestscript "github.com/rogpeppe/go-internal/testscript"
 )
 
 func TestMain(m *testing.M) {
-	testutil.BuildCLI(&testing.T{})
+	BuildCLI(&testing.T{})
 	code := m.Run()
-	testutil.Cleanup()
+	Cleanup()
 	os.Exit(code)
 }
 
 func TestScripts(t *testing.T) {
-	cliPath := testutil.CLIPath(t)
+	cliPath := CLIPath(t)
 	cwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("get working dir: %v", err)

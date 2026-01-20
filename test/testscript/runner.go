@@ -1,5 +1,4 @@
-// Package testutil provides test helpers for E2E CLI testing.
-package testutil
+package testscript
 
 import (
 	"bytes"
