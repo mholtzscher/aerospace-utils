@@ -1,0 +1,7 @@
+# Positive by flag increases percentage.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+cp $AEROSPACE_TESTDATA/state.toml state.toml
+
+exec aerospace-utils gaps adjust --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
+stdout '60%'

@@ -1,0 +1,6 @@
+# Verbose flag runs successfully.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+cp $AEROSPACE_TESTDATA/state.toml state.toml
+
+exec aerospace-utils gaps current --config-path config.toml --state-path state.toml --verbose --no-color

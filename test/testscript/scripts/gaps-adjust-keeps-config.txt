@@ -1,0 +1,15 @@
+# Update preserves other config settings.
+
+cp $AEROSPACE_TESTDATA/aerospace-extra-config.toml config.toml
+cp $AEROSPACE_TESTDATA/state.toml state.toml
+
+exec aerospace-utils gaps adjust --no-reload --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
+
+# Verify gap values updated
+grep 'monitor.main = 384' config.toml
+
+# Verify other config preserved
+grep 'start-at-login = true' config.toml
+grep 'after-startup-command' config.toml
+grep 'alt-h' config.toml
+grep 'workspace-to-monitor-force-assignment' config.toml

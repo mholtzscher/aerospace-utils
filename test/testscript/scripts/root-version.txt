@@ -1,0 +1,4 @@
+# Version flag shows version info.
+
+exec aerospace-utils --version
+stdout 'aerospace-utils'

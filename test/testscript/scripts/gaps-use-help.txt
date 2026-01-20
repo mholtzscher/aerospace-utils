@@ -1,0 +1,5 @@
+# Gaps use help output.
+
+exec aerospace-utils gaps use --help
+stdout 'use'
+stdout 'percent'

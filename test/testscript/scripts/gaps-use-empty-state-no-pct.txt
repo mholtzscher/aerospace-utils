@@ -1,0 +1,8 @@
+# Empty state file without percentage fails.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+
+! exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color
+stderr 'no percentage'
+
+-- state.toml --

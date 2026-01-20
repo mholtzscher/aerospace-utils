@@ -1,0 +1,3 @@
+# Non-numeric percentage is invalid.
+
+! exec aerospace-utils gaps use --monitor-width 1920 abc

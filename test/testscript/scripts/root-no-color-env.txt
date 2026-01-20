@@ -1,0 +1,8 @@
+# NO_COLOR env var disables ANSI escape sequences.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+cp $AEROSPACE_TESTDATA/state.toml state.toml
+
+env NO_COLOR=1
+exec aerospace-utils gaps current --config-path config.toml --state-path state.toml
+! stdout '\x1b\['

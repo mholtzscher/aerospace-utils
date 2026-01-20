@@ -1,0 +1,4 @@
+# Gaps current help output.
+
+exec aerospace-utils gaps current --help
+stdout 'current'

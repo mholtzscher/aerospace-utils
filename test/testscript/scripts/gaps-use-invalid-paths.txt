@@ -1,0 +1,10 @@
+# Missing state path directory returns error.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+
+mkdir locked
+cp $AEROSPACE_TESTDATA/state.toml locked/state.toml
+chmod 555 locked
+! exec aerospace-utils gaps use --config-path config.toml --state-path locked/state.toml --monitor-width 1920 --no-color 60
+stderr 'write state'
+chmod 755 locked

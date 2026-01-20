@@ -1,0 +1,11 @@
+# Fallback to default when no current percentage.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+
+exec aerospace-utils gaps use --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color
+stdout '75%'
+stdout '240px'
+
+-- state.toml --
+[monitors.main]
+default = 75

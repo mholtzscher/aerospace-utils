@@ -5,5 +5,6 @@ cp $AEROSPACE_TESTDATA/aerospace.toml $WORK/.config/aerospace/aerospace.toml
 cp $AEROSPACE_TESTDATA/state.toml $WORK/.config/aerospace/aerospace-utils-state.toml
 
 env HOME=$WORK
-exec aerospace-utils gaps current --no-color
-stdout 'current: 50'
+exec aerospace-utils gaps use --dry-run --monitor-width 1920 --no-color
+stdout '50%'
+stdout 'dry'

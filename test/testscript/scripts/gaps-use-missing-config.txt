@@ -1,0 +1,6 @@
+# Missing config file returns error with helpful message.
+
+cp $AEROSPACE_TESTDATA/state.toml state.toml
+
+! exec aerospace-utils gaps use --config-path nonexistent.toml --state-path state.toml --monitor-width 1920 --no-color 50
+stderr 'config file not found'

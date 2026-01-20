@@ -79,9 +79,23 @@ func (ws *WorkspaceService) loadState() error {
 		return nil
 	}
 
+	raw := map[string]any{}
+	if err := toml.Unmarshal(data, &raw); err != nil {
+		return ErrStateFormat
+	}
+	if len(raw) == 0 {
+		ws.state = state
+		return nil
+	}
+
 	var file stateFile
-	if err := toml.Unmarshal(data, &file); err == nil && len(file.Monitors) > 0 {
-		state.monitors = file.Monitors
+	if err := toml.Unmarshal(data, &file); err != nil {
+		return ErrStateFormat
+	}
+	if _, ok := raw["monitors"]; ok {
+		if file.Monitors != nil {
+			state.monitors = file.Monitors
+		}
 		ws.state = state
 		return nil
 	}

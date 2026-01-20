@@ -1,0 +1,7 @@
+# Invalid config file shows error.
+
+cp $AEROSPACE_TESTDATA/invalid.toml config.toml
+
+exec aerospace-utils gaps current --config-path config.toml --state-path nonexistent.toml --no-color
+stdout 'Error loading config'
+stdout '\(file not found\)'

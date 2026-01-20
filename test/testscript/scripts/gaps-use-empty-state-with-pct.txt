@@ -1,0 +1,9 @@
+# Empty state file with percentage argument works.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+
+exec aerospace-utils gaps use --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 50
+stdout '50%'
+stdout '480px'
+
+-- state.toml --

@@ -1,0 +1,13 @@
+# Multi monitor config shows all monitors.
+
+cp $AEROSPACE_TESTDATA/aerospace-multi-monitor.toml config.toml
+cp $AEROSPACE_TESTDATA/state.toml state.toml
+
+exec aerospace-utils gaps current --config-path config.toml --state-path state.toml --no-color
+stdout 'Built-in Retina Display'
+stdout 'LG UltraFine'
+stdout 'Built-in Retina Display: 200'
+stdout 'LG UltraFine: 150'
+stdout 'main'
+stdout 'current: 75'
+stdout 'default: 60'

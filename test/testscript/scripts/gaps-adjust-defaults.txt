@@ -1,0 +1,9 @@
+# Default state path via HOME.
+
+mkdir -p $WORK/.config/aerospace
+cp $AEROSPACE_TESTDATA/state.toml $WORK/.config/aerospace/aerospace-utils-state.toml
+
+env HOME=$WORK
+exec aerospace-utils gaps adjust --dry-run --monitor-width 1920 --no-color
+stdout '55%'
+stdout '432px'

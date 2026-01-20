@@ -31,6 +31,7 @@ func TestScripts(t *testing.T) {
 			cliDir := filepath.Dir(cliPath)
 			env.Setenv("PATH", cliDir+string(os.PathListSeparator)+os.Getenv("PATH"))
 			env.Setenv("AEROSPACE_TESTDATA", testdataDir)
+			env.Setenv("AEROSPACE_CLI", cliPath)
 			return nil
 		},
 	})

@@ -1,0 +1,24 @@
+# Reload success runs aerospace reload-config.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+cp $AEROSPACE_TESTDATA/state.toml state.toml
+
+mkdir bin
+cp $AEROSPACE_CLI bin/aerospace-utils
+cp fake-aerospace bin/aerospace
+chmod 755 bin/aerospace
+
+env PATH=$WORK/bin
+
+exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 60
+stdout 'Set main to 60%'
+grep 'reloaded' reloaded
+
+-- fake-aerospace --
+#!/bin/sh
+if [ "$1" = "reload-config" ]; then
+  echo reloaded > "$PWD/reloaded"
+  exit 0
+fi
+echo "unexpected args" >&2
+exit 1

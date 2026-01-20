@@ -1,0 +1,7 @@
+# Gaps command help shows subcommands.
+
+exec aerospace-utils gaps --help
+stdout 'gaps'
+stdout 'use'
+stdout 'adjust'
+stdout 'current'

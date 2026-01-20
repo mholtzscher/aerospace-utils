@@ -1,0 +1,4 @@
+# Gaps adjust help output.
+
+exec aerospace-utils gaps adjust --help
+stdout 'adjust'

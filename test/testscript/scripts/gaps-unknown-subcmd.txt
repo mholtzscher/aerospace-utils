@@ -1,0 +1,4 @@
+# Unknown gaps subcommand shows available commands.
+
+exec aerospace-utils gaps unknown
+stdout 'Available Commands'

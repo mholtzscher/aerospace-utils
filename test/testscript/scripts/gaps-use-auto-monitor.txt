@@ -1,0 +1,21 @@
+# Auto-detected monitor width uses xrandr.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+cp $AEROSPACE_TESTDATA/state.toml state.toml
+
+mkdir bin
+cp $AEROSPACE_CLI bin/aerospace-utils
+cp fake-xrandr bin/xrandr
+chmod 755 bin/xrandr
+
+env PATH=$WORK/bin
+
+exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --no-color 60
+stdout 'Set main to 60%'
+grep 'monitor.main = 200' config.toml
+grep 'current = 60' state.toml
+
+-- fake-xrandr --
+#!/bin/sh
+echo "Screen 0: minimum 8 x 8, current 1000 x 800, maximum 32767 x 32767"
+echo "DP-1 connected primary 1000x800+0+0 (normal left inverted right x axis y axis) 0mm x 0mm"

@@ -1,0 +1,9 @@
+# State file with no monitors shows helpful message.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+
+exec aerospace-utils gaps current --config-path config.toml --state-path state.toml --no-color
+stdout 'no monitors configured'
+
+-- state.toml --
+# Empty state with no monitors

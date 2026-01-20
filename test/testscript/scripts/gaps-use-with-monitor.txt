@@ -1,0 +1,8 @@
+# With specific monitor name.
+
+cp $AEROSPACE_TESTDATA/aerospace-multi-monitor.toml config.toml
+cp $AEROSPACE_TESTDATA/state.toml state.toml
+
+exec aerospace-utils gaps use --dry-run --monitor 'Built-in Retina Display' --config-path config.toml --state-path state.toml --monitor-width 2560 --no-color 60
+stdout 'Built-in Retina Display'
+stdout '60%'

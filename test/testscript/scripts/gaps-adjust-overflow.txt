@@ -1,0 +1,11 @@
+# Overflow (result > 100) returns error.
+
+cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
+
+! exec aerospace-utils gaps adjust --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
+stderr 'invalid'
+
+-- state.toml --
+[monitors.main]
+current = 95
+default = 50
