@@ -9,7 +9,8 @@ A small CLI for adjusting Aerospace workspace gaps based on monitor size.
 **Never commit code unless explicitly prompted by the user.**
 **Always run linting after modifying code.**
 **Always run formatter after modifying code.**
-**Always run tests after modifying code.**
+**Always run e2e tests after modifying code.**
+**All tests must be e2e; do not write unit tests.**
 
 ## Commands
 
@@ -23,11 +24,9 @@ dev-build-release              # release build
 # Run
 dev-run <args>                 # run locally
 
-# Test
-dev-test                       # all tests
-dev-test-verbose               # verbose output
-go test ./internal/gaps        # single package
-go test -run TestName ./...    # single test
+# Test (e2e only)
+dev-test                       # all e2e tests
+dev-test-verbose               # verbose e2e output
 
 # Lint/format
 dev-fmt                        # format code
@@ -125,6 +124,7 @@ Use goimports or let `go fmt` handle ordering.
 
 ### Testing
 
+- All tests are e2e only; do not run unit tests.
 - Tests live in `*_test.go` files alongside the code.
 - Use table-driven tests where appropriate.
 - Use `t.Run` for subtests.
