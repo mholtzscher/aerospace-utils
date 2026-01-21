@@ -4,5 +4,5 @@ package main
 import "github.com/mholtzscher/aerospace-utils/cmd"
 
 func main() {
-	cmd.Execute()
+	cmd.Main()
 }

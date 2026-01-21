@@ -1,16 +1,20 @@
 # Auto-detected monitor width uses xrandr.
+# This test is Linux-specific (xrandr-based display detection).
+[!exec:xrandr] skip 'xrandr not available'
+[darwin] skip 'test is Linux-specific'
 
 cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
 cp $AEROSPACE_TESTDATA/state.toml state.toml
 
 mkdir bin
-cp $AEROSPACE_CLI bin/aerospace-utils
 cp fake-xrandr bin/xrandr
+cp fake-aerospace bin/aerospace
 chmod 755 bin/xrandr
+chmod 755 bin/aerospace
 
-env PATH=$WORK/bin
+env PATH=$WORK/bin:$PATH
 
-exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --no-color 60
+exec aerospace-utils gaps use --no-reload --config-path config.toml --state-path state.toml --no-color 60
 stdout 'Set main to 60%'
 grep 'monitor.main = 200' config.toml
 grep 'current = 60' state.toml
@@ -19,3 +23,7 @@ grep 'current = 60' state.toml
 #!/bin/sh
 echo "Screen 0: minimum 8 x 8, current 1000 x 800, maximum 32767 x 32767"
 echo "DP-1 connected primary 1000x800+0+0 (normal left inverted right x axis y axis) 0mm x 0mm"
+
+-- fake-aerospace --
+#!/bin/sh
+exit 0

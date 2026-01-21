@@ -4,33 +4,39 @@ package testscript
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
-	gotestscript "github.com/rogpeppe/go-internal/testscript"
+	"github.com/mholtzscher/aerospace-utils/cmd"
+	"github.com/rogpeppe/go-internal/testscript"
 )
 
 func TestMain(m *testing.M) {
-	BuildCLI(&testing.T{})
-	code := m.Run()
-	Cleanup()
-	os.Exit(code)
+	testscript.Main(m, map[string]func(){
+		"aerospace-utils": cmd.Main,
+	})
 }
 
 func TestScripts(t *testing.T) {
-	cliPath := CLIPath(t)
 	cwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("get working dir: %v", err)
 	}
 	testdataDir := filepath.Clean(filepath.Join(cwd, "testdata"))
 
-	gotestscript.Run(t, gotestscript.Params{
-		Dir: "scripts",
-		Setup: func(env *gotestscript.Env) error {
-			cliDir := filepath.Dir(cliPath)
-			env.Setenv("PATH", cliDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+	testscript.Run(t, testscript.Params{
+		Dir:                 "scripts",
+		RequireExplicitExec: true,
+		Setup: func(env *testscript.Env) error {
 			env.Setenv("AEROSPACE_TESTDATA", testdataDir)
-			env.Setenv("AEROSPACE_CLI", cliPath)
+
+			// Extract testscript's bin directory from PATH so scripts can
+			// construct custom PATHs that still include aerospace-utils.
+			path := env.Getenv("PATH")
+			if parts := strings.SplitN(path, string(os.PathListSeparator), 2); len(parts) > 0 {
+				env.Setenv("TESTSCRIPT_BIN", parts[0])
+			}
+
 			return nil
 		},
 	})

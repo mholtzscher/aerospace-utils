@@ -20,11 +20,17 @@ var rootCmd = &cobra.Command{
 	Version: Version,
 }
 
-// Execute runs the root command.
-func Execute() {
+// Main is the entry point for the CLI, suitable for testscript.Main registration.
+func Main() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+// Execute runs the root command.
+// Deprecated: Use Main() instead.
+func Execute() {
+	Main()
 }
 
 func init() {

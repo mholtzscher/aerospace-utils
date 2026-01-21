@@ -3,9 +3,10 @@
 cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
 cp $AEROSPACE_TESTDATA/state.toml state.toml
 
+# Override PATH to exclude the real aerospace binary while keeping
+# aerospace-utils available via TESTSCRIPT_BIN.
 mkdir bin
-cp $AEROSPACE_CLI bin/aerospace-utils
-env PATH=$WORK/bin
+env PATH=$WORK/bin:$TESTSCRIPT_BIN
 
 exec aerospace-utils gaps adjust --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
 stdout 'aerospace not found'

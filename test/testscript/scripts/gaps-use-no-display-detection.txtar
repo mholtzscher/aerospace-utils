@@ -1,13 +1,10 @@
 # No display detection and no --monitor-width returns error.
+# This test is for platforms without native display detection (non-darwin without xrandr).
+[darwin] skip 'macOS uses CoreGraphics for display detection'
+[exec:xrandr] skip 'xrandr available'
 
 cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
 cp $AEROSPACE_TESTDATA/state.toml state.toml
-
-mkdir bin
-cp $AEROSPACE_CLI bin/aerospace-utils
-
-# Remove xrandr from PATH by limiting PATH to test bin
-env PATH=$WORK/bin
 
 ! exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --no-color 50
 stderr 'display detection not available'
