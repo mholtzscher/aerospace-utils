@@ -1,6 +1,13 @@
 # Missing config file returns error with helpful message.
 
-cp $AEROSPACE_TESTDATA/state.toml state.toml
-
 ! exec aerospace-utils gaps adjust --config-path nonexistent.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
 stderr 'config file not found'
+
+-- state.toml --
+[monitors.main]
+current = 50
+default = 50
+
+[monitors.'Built-in Retina Display']
+current = 75
+default = 60

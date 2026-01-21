@@ -1,7 +1,0 @@
-[monitors.main]
-current = 50
-default = 50
-
-[monitors.'Built-in Retina Display']
-current = 75
-default = 60

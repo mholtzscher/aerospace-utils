@@ -1,8 +1,5 @@
 # Update preserves other config settings.
 
-cp $AEROSPACE_TESTDATA/aerospace-extra-config.toml config.toml
-cp $AEROSPACE_TESTDATA/state.toml state.toml
-
 exec aerospace-utils gaps adjust --no-reload --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
 
 # Verify gap values updated
@@ -13,3 +10,39 @@ grep 'start-at-login = true' config.toml
 grep 'after-startup-command' config.toml
 grep 'alt-h' config.toml
 grep 'workspace-to-monitor-force-assignment' config.toml
+
+-- config.toml --
+start-at-login = true
+after-startup-command = ["layout tiles"]
+
+[mode.main.binding]
+"alt-h" = "focus left"
+"alt-l" = "focus right"
+
+[workspace-to-monitor-force-assignment]
+"1" = "main"
+"2" = "secondary"
+
+[gaps]
+[gaps.inner]
+horizontal = 10
+vertical = 10
+
+[gaps.outer]
+top = 10
+bottom = 10
+left = [
+    { monitor.main = 100 },
+]
+right = [
+    { monitor.main = 100 },
+]
+
+-- state.toml --
+[monitors.main]
+current = 50
+default = 50
+
+[monitors.'Built-in Retina Display']
+current = 75
+default = 60

@@ -3,9 +3,6 @@
 [!exec:xrandr] skip 'xrandr not available'
 [darwin] skip 'test is Linux-specific'
 
-cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
-cp $AEROSPACE_TESTDATA/state.toml state.toml
-
 mkdir bin
 cp fake-xrandr bin/xrandr
 cp fake-aerospace bin/aerospace
@@ -18,6 +15,33 @@ exec aerospace-utils gaps use --no-reload --config-path config.toml --state-path
 stdout 'Set main to 60%'
 grep 'monitor.main = 200' config.toml
 grep 'current = 60' state.toml
+
+-- config.toml --
+start-at-login = true
+
+[gaps]
+[gaps.inner]
+horizontal = 10
+vertical = 10
+
+[gaps.outer]
+top = 10
+bottom = 10
+left = [
+    { monitor.main = 100 },
+]
+right = [
+    { monitor.main = 100 },
+]
+
+-- state.toml --
+[monitors.main]
+current = 50
+default = 50
+
+[monitors.'Built-in Retina Display']
+current = 75
+default = 60
 
 -- fake-xrandr --
 #!/bin/sh

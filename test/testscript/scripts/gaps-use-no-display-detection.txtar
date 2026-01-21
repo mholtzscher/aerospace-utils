@@ -3,9 +3,33 @@
 [darwin] skip 'macOS uses CoreGraphics for display detection'
 [exec:xrandr] skip 'xrandr available'
 
-cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
-cp $AEROSPACE_TESTDATA/state.toml state.toml
-
 ! exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --no-color 50
 stderr 'display detection not available'
 stderr 'monitor-width'
+
+-- config.toml --
+start-at-login = true
+
+[gaps]
+[gaps.inner]
+horizontal = 10
+vertical = 10
+
+[gaps.outer]
+top = 10
+bottom = 10
+left = [
+    { monitor.main = 100 },
+]
+right = [
+    { monitor.main = 100 },
+]
+
+-- state.toml --
+[monitors.main]
+current = 50
+default = 50
+
+[monitors.'Built-in Retina Display']
+current = 75
+default = 60

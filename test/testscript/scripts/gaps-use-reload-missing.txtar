@@ -1,8 +1,5 @@
 # Missing aerospace binary shows warning.
 
-cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
-cp $AEROSPACE_TESTDATA/state.toml state.toml
-
 # Override PATH to exclude the real aerospace binary while keeping
 # aerospace-utils available via TESTSCRIPT_BIN.
 mkdir bin
@@ -10,3 +7,30 @@ env PATH=$WORK/bin:$TESTSCRIPT_BIN
 
 exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 60
 stdout 'aerospace not found'
+
+-- config.toml --
+start-at-login = true
+
+[gaps]
+[gaps.inner]
+horizontal = 10
+vertical = 10
+
+[gaps.outer]
+top = 10
+bottom = 10
+left = [
+    { monitor.main = 100 },
+]
+right = [
+    { monitor.main = 100 },
+]
+
+-- state.toml --
+[monitors.main]
+current = 50
+default = 50
+
+[monitors.'Built-in Retina Display']
+current = 75
+default = 60

@@ -1,8 +1,5 @@
 # Reload success runs aerospace reload-config.
 
-cp $AEROSPACE_TESTDATA/aerospace.toml config.toml
-cp $AEROSPACE_TESTDATA/state.toml state.toml
-
 mkdir bin
 cp fake-aerospace bin/aerospace
 chmod 755 bin/aerospace
@@ -12,6 +9,33 @@ env PATH=$WORK/bin:$PATH
 exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 60
 stdout 'Set main to 60%'
 grep 'reloaded' reloaded
+
+-- config.toml --
+start-at-login = true
+
+[gaps]
+[gaps.inner]
+horizontal = 10
+vertical = 10
+
+[gaps.outer]
+top = 10
+bottom = 10
+left = [
+    { monitor.main = 100 },
+]
+right = [
+    { monitor.main = 100 },
+]
+
+-- state.toml --
+[monitors.main]
+current = 50
+default = 50
+
+[monitors.'Built-in Retina Display']
+current = 75
+default = 60
 
 -- fake-aerospace --
 #!/bin/sh

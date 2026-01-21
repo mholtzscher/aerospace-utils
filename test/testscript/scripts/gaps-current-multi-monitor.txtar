@@ -1,8 +1,5 @@
 # Multi monitor config shows all monitors.
 
-cp $AEROSPACE_TESTDATA/aerospace-multi-monitor.toml config.toml
-cp $AEROSPACE_TESTDATA/state.toml state.toml
-
 exec aerospace-utils gaps current --config-path config.toml --state-path state.toml --no-color
 stdout 'Built-in Retina Display'
 stdout 'LG UltraFine'
@@ -11,3 +8,34 @@ stdout 'LG UltraFine: 150'
 stdout 'main'
 stdout 'current: 75'
 stdout 'default: 60'
+
+-- config.toml --
+start-at-login = true
+
+[gaps]
+[gaps.inner]
+horizontal = 10
+vertical = 10
+
+[gaps.outer]
+top = 10
+bottom = 10
+left = [
+    { monitor.main = 100 },
+    { monitor.'Built-in Retina Display' = 200 },
+    { monitor."LG UltraFine" = 150 },
+]
+right = [
+    { monitor.main = 100 },
+    { monitor.'Built-in Retina Display' = 200 },
+    { monitor."LG UltraFine" = 150 },
+]
+
+-- state.toml --
+[monitors.main]
+current = 50
+default = 50
+
+[monitors.'Built-in Retina Display']
+current = 75
+default = 60
