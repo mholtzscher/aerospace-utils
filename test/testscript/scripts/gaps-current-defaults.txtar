@@ -3,7 +3,7 @@
 mkdir -p $WORK/.config/aerospace
 
 env HOME=$WORK
-exec aerospace-utils gaps current --no-color
+exec aerospace-utils workspace current --no-color
 stdout 'current: 50'
 
 -- .config/aerospace/aerospace.toml --

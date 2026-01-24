@@ -1,6 +1,6 @@
 # With specific monitor name.
 
-exec aerospace-utils gaps adjust --dry-run --monitor 'Built-in Retina Display' --config-path config.toml --state-path state.toml --monitor-width 2560 --no-color --by=10
+exec aerospace-utils workspace adjust --dry-run --monitor 'Built-in Retina Display' --config-path config.toml --state-path state.toml --monitor-width 2560 --no-color --by=10
 stdout 'Built-in Retina Display'
 stdout '85%'
 stdout '192px'

@@ -31,10 +31,10 @@ Set the workspace to use a specific percentage of the monitor width. The remaini
 
 ```bash
 # Set workspace to 80% of monitor width (10% gap on each side)
-aerospace-utils gaps use 80
+aerospace-utils workspace use 80
 
 # Set size and save as default for future adjustments
-aerospace-utils gaps use 80 --set-default
+aerospace-utils workspace use 80 --set-default
 ```
 
 ### Adjust Size
@@ -43,14 +43,14 @@ Incrementally increase or decrease the current workspace size.
 
 ```bash
 # Increase workspace width by 5% (default)
-aerospace-utils gaps adjust
+aerospace-utils workspace adjust
 
 # Increase workspace width by 10%
-aerospace-utils gaps adjust -b 10
+aerospace-utils workspace adjust -b 10
 
 # Decrease workspace width by 5%
-aerospace-utils gaps adjust -b -5
-aerospace-utils gaps adjust --by=-5
+aerospace-utils workspace adjust -b -5
+aerospace-utils workspace adjust --by=-5
 ```
 
 ### View Configuration
@@ -58,12 +58,12 @@ aerospace-utils gaps adjust --by=-5
 Display the current resolved paths, calculated gaps, and saved state.
 
 ```bash
-aerospace-utils gaps current
+aerospace-utils workspace current
 ```
 
-### Gaps Options
+### Workspace Options
 
-These options are available under `aerospace-utils gaps`.
+These options are available under `aerospace-utils workspace`.
 
 - `--dry-run`: Print actions without modifying files or reloading Aerospace.
 - `--verbose`: Show detailed processing information.

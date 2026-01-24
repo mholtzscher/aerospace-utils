@@ -2,4 +2,4 @@
 
 exec aerospace-utils --help
 stdout 'aerospace-utils'
-stdout 'gaps'
+stdout 'workspace'

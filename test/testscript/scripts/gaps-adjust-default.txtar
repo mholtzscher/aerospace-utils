@@ -1,6 +1,6 @@
 # Default adjustment without --by flag.
 
-exec aerospace-utils gaps adjust --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color
+exec aerospace-utils workspace adjust --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color
 stdout '55%'
 stdout '432px'
 

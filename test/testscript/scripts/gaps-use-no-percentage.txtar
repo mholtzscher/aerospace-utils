@@ -1,6 +1,6 @@
 # No percentage without state fails.
 
-! exec aerospace-utils gaps use --config-path config.toml --state-path nonexistent.toml --monitor-width 1920 --no-color
+! exec aerospace-utils workspace use --config-path config.toml --state-path nonexistent.toml --monitor-width 1920 --no-color
 stderr 'no percentage specified'
 
 -- config.toml --

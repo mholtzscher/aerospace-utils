@@ -3,7 +3,7 @@
 mkdir -p $WORK/.config/aerospace
 
 env HOME=$WORK
-exec aerospace-utils gaps use --dry-run --monitor-width 1920 --no-color
+exec aerospace-utils workspace use --dry-run --monitor-width 1920 --no-color
 stdout '50%'
 stdout 'dry'
 

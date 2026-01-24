@@ -6,7 +6,7 @@ chmod 755 bin/aerospace
 
 env PATH=$WORK/bin:$PATH
 
-exec aerospace-utils gaps adjust --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
+exec aerospace-utils workspace adjust --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
 stdout 'reload failed'
 stdout 'boom'
 

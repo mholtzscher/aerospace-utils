@@ -1,6 +1,6 @@
 # Verbose flag runs successfully.
 
-exec aerospace-utils gaps current --config-path config.toml --state-path state.toml --verbose --no-color
+exec aerospace-utils workspace current --config-path config.toml --state-path state.toml --verbose --no-color
 
 -- config.toml --
 start-at-login = true

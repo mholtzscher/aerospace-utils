@@ -1,6 +1,6 @@
 # Minimum boundary (1%) is valid.
 
-exec aerospace-utils gaps use --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 1
+exec aerospace-utils workspace use --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 1
 stdout '1%'
 
 -- config.toml --

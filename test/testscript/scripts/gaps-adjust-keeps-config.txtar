@@ -1,6 +1,6 @@
 # Update preserves other config settings.
 
-exec aerospace-utils gaps adjust --no-reload --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
+exec aerospace-utils workspace adjust --no-reload --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
 
 # Verify gap values updated
 grep 'monitor.main = 384' config.toml

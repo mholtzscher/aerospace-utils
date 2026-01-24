@@ -1,6 +1,6 @@
 # Dry run does not modify files.
 
-exec aerospace-utils gaps use --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 50
+exec aerospace-utils workspace use --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 50
 stdout 'dry'
 stdout '50%'
 stdout '480px'

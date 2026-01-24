@@ -1,6 +1,6 @@
 # No-color flag disables ANSI escape sequences.
 
-exec aerospace-utils gaps current --config-path config.toml --state-path state.toml --no-color
+exec aerospace-utils workspace current --config-path config.toml --state-path state.toml --no-color
 ! stdout '\x1b\['
 
 -- config.toml --

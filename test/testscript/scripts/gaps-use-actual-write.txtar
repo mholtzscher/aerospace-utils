@@ -1,6 +1,6 @@
 # Actual write updates config and state files.
 
-exec aerospace-utils gaps use --no-reload --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 60
+exec aerospace-utils workspace use --no-reload --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 60
 
 # Verify config updated
 grep 'monitor.main = 384' config.toml

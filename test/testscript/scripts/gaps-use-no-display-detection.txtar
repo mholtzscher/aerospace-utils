@@ -3,7 +3,7 @@
 [darwin] skip 'macOS uses CoreGraphics for display detection'
 [exec:xrandr] skip 'xrandr available'
 
-! exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --no-color 50
+! exec aerospace-utils workspace use --config-path config.toml --state-path state.toml --no-color 50
 stderr 'display detection not available'
 stderr 'monitor-width'
 

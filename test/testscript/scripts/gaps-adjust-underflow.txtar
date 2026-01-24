@@ -1,6 +1,6 @@
 # Underflow (result < 1) returns error.
 
-! exec aerospace-utils gaps adjust --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=-10
+! exec aerospace-utils workspace adjust --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=-10
 stderr 'invalid'
 
 -- config.toml --

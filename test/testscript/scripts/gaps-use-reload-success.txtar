@@ -6,7 +6,7 @@ chmod 755 bin/aerospace
 
 env PATH=$WORK/bin:$PATH
 
-exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 60
+exec aerospace-utils workspace use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 60
 stdout 'Set main to 60%'
 grep 'reloaded' reloaded
 

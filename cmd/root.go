@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mholtzscher/aerospace-utils/cmd/gaps"
+	"github.com/mholtzscher/aerospace-utils/cmd/workspace"
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
 	"github.com/spf13/cobra"
 )
@@ -16,7 +16,7 @@ var Version = "0.2.0"
 // rootCmd is the base command for the CLI.
 var rootCmd = &cobra.Command{
 	Use:     "aerospace-utils",
-	Short:   "CLI for managing Aerospace workspace gaps",
+	Short:   "CLI for managing Aerospace workspace sizing",
 	Version: Version,
 }
 
@@ -60,5 +60,5 @@ func init() {
 	}
 
 	// Add subcommands
-	rootCmd.AddCommand(gaps.Cmd)
+	rootCmd.AddCommand(workspace.Cmd)
 }

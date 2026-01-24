@@ -1,6 +1,6 @@
 # Invalid state file format returns error.
 
-! exec aerospace-utils gaps adjust --state-path state.toml --monitor-width 1920 --no-color
+! exec aerospace-utils workspace adjust --state-path state.toml --monitor-width 1920 --no-color
 stderr 'load state'
 
 -- state.toml --

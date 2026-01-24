@@ -1,3 +1,3 @@
 # Zero percentage is invalid.
 
-! exec aerospace-utils gaps use --monitor-width 1920 0
+! exec aerospace-utils workspace use --monitor-width 1920 0

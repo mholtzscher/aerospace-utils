@@ -1,4 +1,4 @@
-package gaps
+package workspace
 
 import (
 	"errors"
@@ -22,11 +22,11 @@ Negative values decrease the workspace size (larger gaps).
 Default adjustment is +5.
 
 Examples:
-  aerospace-utils gaps adjust           # +5%
-  aerospace-utils gaps adjust -b 10     # +10%
-  aerospace-utils gaps adjust -b -5     # -5%
-  aerospace-utils gaps adjust --by=-10  # -10%
-  aerospace-utils gaps adjust -b -10 --monitor "Dell U2722D"`,
+  aerospace-utils workspace adjust           # +5%
+  aerospace-utils workspace adjust -b 10     # +10%
+  aerospace-utils workspace adjust -b -5     # -5%
+  aerospace-utils workspace adjust --by=-10  # -10%
+  aerospace-utils workspace adjust -b -10 --monitor "Dell U2722D"`,
 	Args: cobra.NoArgs,
 	RunE: runAdjust,
 }
@@ -52,7 +52,7 @@ func runAdjust(c *cobra.Command, args []string) error {
 		return fmt.Errorf("load state: %w", err)
 	}
 	if monState.Current == nil {
-		return errors.New("no current percentage set; use 'gaps use' first")
+		return errors.New("no current percentage set; use 'workspace use' first")
 	}
 
 	// Calculate new percentage

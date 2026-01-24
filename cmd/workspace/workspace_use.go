@@ -1,4 +1,4 @@
-package gaps
+package workspace
 
 import (
 	"errors"
@@ -26,9 +26,9 @@ The gap size is calculated to achieve the desired percentage.
 If no percentage is given, uses the current or default percentage.
 
 Examples:
-  aerospace-utils gaps use 40
-  aerospace-utils gaps use 80 --monitor "Dell U2722D"
-  aerospace-utils gaps use --set-default 50`,
+  aerospace-utils workspace use 40
+  aerospace-utils workspace use 80 --monitor "Dell U2722D"
+  aerospace-utils workspace use --set-default 50`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runUse,
 }

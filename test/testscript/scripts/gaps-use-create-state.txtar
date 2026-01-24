@@ -1,6 +1,6 @@
 # Missing state file is created.
 
-exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 55
+exec aerospace-utils workspace use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 55
 stdout 'Set main to 55%'
 grep 'current = 55' state.toml
 grep 'default = 55' state.toml

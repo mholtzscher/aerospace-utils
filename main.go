@@ -1,4 +1,4 @@
-// aerospace-utils is a CLI for managing Aerospace workspace gaps.
+// aerospace-utils is a CLI for managing Aerospace workspace sizing.
 package main
 
 import "github.com/mholtzscher/aerospace-utils/cmd"

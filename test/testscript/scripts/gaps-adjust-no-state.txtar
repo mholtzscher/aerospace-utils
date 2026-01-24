@@ -1,6 +1,6 @@
 # No state file returns error.
 
-! exec aerospace-utils gaps adjust --config-path config.toml --state-path nonexistent.toml --monitor-width 1920 --no-color
+! exec aerospace-utils workspace adjust --config-path config.toml --state-path nonexistent.toml --monitor-width 1920 --no-color
 stderr 'no current percentage'
 
 -- config.toml --

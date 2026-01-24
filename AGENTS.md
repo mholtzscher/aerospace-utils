@@ -1,6 +1,6 @@
 # AGENTS.md - AI Agent Guidelines for aerospace-utils
 
-A small CLI for adjusting Aerospace workspace gaps based on monitor size.
+A small CLI for adjusting Aerospace workspace sizing based on monitor gaps.
 
 **Stack**: Go 1.22+, Cobra, pelletier/go-toml/v2, fatih/color
 
@@ -48,12 +48,12 @@ nix run                        # run package
 aerospace-utils/
 ├── main.go                     # Entry point
 ├── cmd/
-│   ├── root.go                 # Root command, global flags, imports gaps
-│   └── gaps/                   # 'gaps' subcommand package
-│       ├── gaps.go             # Parent command
-│       ├── gaps_use.go         # 'gaps use' subcommand
-│       ├── gaps_adjust.go      # 'gaps adjust' subcommand
-│       └── gaps_current.go     # 'gaps current' subcommand
+│   ├── root.go                 # Root command, global flags, imports workspace
+│   └── workspace/              # 'workspace' subcommand package
+│       ├── workspace.go        # Parent command
+│       ├── workspace_use.go    # 'workspace use' subcommand
+│       ├── workspace_adjust.go # 'workspace adjust' subcommand
+│       └── workspace_current.go # 'workspace current' subcommand
 ├── internal/
 │   ├── aerospace/
 │   │   └── aerospace.go        # aerospace binary wrapper

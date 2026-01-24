@@ -1,4 +1,4 @@
 # Missing config and state files shows file not found.
 
-exec aerospace-utils gaps current --config-path /nonexistent/path/aerospace.toml --state-path /nonexistent/path/state.toml --no-color
+exec aerospace-utils workspace current --config-path /nonexistent/path/aerospace.toml --state-path /nonexistent/path/state.toml --no-color
 stdout '\(file not found\)'

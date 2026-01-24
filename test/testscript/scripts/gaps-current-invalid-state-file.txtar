@@ -1,6 +1,6 @@
 # Invalid state file shows error.
 
-exec aerospace-utils gaps current --config-path config.toml --state-path state.toml --no-color
+exec aerospace-utils workspace current --config-path config.toml --state-path state.toml --no-color
 stdout 'Error loading state'
 
 -- config.toml --

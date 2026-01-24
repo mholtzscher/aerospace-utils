@@ -1,4 +1,4 @@
 # Gaps adjust help output.
 
-exec aerospace-utils gaps adjust --help
+exec aerospace-utils workspace adjust --help
 stdout 'adjust'

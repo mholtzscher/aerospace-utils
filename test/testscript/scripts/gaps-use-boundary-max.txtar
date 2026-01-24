@@ -1,6 +1,6 @@
 # Maximum boundary (100%) is valid.
 
-exec aerospace-utils gaps use --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 100
+exec aerospace-utils workspace use --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 100
 stdout '100%'
 
 -- config.toml --

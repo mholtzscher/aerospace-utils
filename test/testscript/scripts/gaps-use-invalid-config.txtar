@@ -1,6 +1,6 @@
 # Invalid config file returns error.
 
-! exec aerospace-utils gaps use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 50
+! exec aerospace-utils workspace use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 50
 stderr 'update config'
 
 -- config.toml --

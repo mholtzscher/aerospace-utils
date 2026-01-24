@@ -1,6 +1,6 @@
 # Set default updates state file.
 
-exec aerospace-utils gaps use --no-reload --set-default --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 75
+exec aerospace-utils workspace use --no-reload --set-default --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 75
 stdout '75%'
 
 grep 'current = 75' state.toml

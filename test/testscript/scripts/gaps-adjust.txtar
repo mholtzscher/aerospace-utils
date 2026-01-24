@@ -1,6 +1,6 @@
 # Exercise gaps adjust dry run.
 
-exec aerospace-utils gaps adjust --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
+exec aerospace-utils workspace adjust --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
 stdout '60%'
 stdout '384px'
 

@@ -1,6 +1,6 @@
 # Unknown monitor without state returns error.
 
-! exec aerospace-utils gaps adjust --monitor 'NonExistent Monitor' --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color
+! exec aerospace-utils workspace adjust --monitor 'NonExistent Monitor' --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color
 stderr 'no current percentage'
 
 -- config.toml --

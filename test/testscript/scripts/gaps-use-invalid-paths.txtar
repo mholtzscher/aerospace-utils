@@ -3,7 +3,7 @@
 mkdir locked
 cp state.toml locked/state.toml
 chmod 555 locked
-! exec aerospace-utils gaps use --config-path config.toml --state-path locked/state.toml --monitor-width 1920 --no-color 60
+! exec aerospace-utils workspace use --config-path config.toml --state-path locked/state.toml --monitor-width 1920 --no-color 60
 stderr 'write state'
 chmod 755 locked
 

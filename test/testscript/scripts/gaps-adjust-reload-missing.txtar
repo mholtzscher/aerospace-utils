@@ -5,7 +5,7 @@
 mkdir bin
 env PATH=$WORK/bin:$TESTSCRIPT_BIN
 
-exec aerospace-utils gaps adjust --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
+exec aerospace-utils workspace adjust --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
 stdout 'aerospace not found'
 
 -- config.toml --

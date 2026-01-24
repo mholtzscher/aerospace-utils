@@ -1,6 +1,6 @@
 # Unknown monitor name still works (creates new entry).
 
-exec aerospace-utils gaps use --dry-run --monitor 'NonExistent Monitor' --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 50
+exec aerospace-utils workspace use --dry-run --monitor 'NonExistent Monitor' --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 50
 stdout 'NonExistent Monitor'
 
 -- config.toml --
