@@ -1,7 +1,9 @@
-# No percentage without state fails.
+# No percentage without state uses default.
 
-! exec aerospace-utils workspace use --config-path config.toml --state-path nonexistent.toml --monitor-width 1920 --no-color
-stderr 'no percentage specified'
+exec aerospace-utils workspace use --config-path config.toml --state-path nonexistent.toml --monitor-width 1920 --no-color
+stdout 'Set main to 60%'
+grep 'current = 60' nonexistent.toml
+grep 'default = 60' nonexistent.toml
 
 -- config.toml --
 start-at-login = true

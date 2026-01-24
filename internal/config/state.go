@@ -17,6 +17,8 @@ var (
 	ErrStateWrite   = errors.New("failed to write state file")
 )
 
+const defaultInitialPercentage int64 = 60
+
 // WorkspaceService abstracts state file resolution, loading, and writing.
 type WorkspaceService struct {
 	statePath string
@@ -123,7 +125,7 @@ func (ws *WorkspaceService) getOrCreateMonitor(name string) *MonitorState {
 }
 
 // ResolvePercentage returns the percentage to use for a monitor.
-// Priority: explicit > current > default.
+// Priority: explicit > current > default, with a fallback when no state exists.
 func (ws *WorkspaceService) ResolvePercentage(monitor string, explicit *int64) (*int64, error) {
 	if err := ws.loadState(); err != nil {
 		return nil, err
@@ -131,6 +133,11 @@ func (ws *WorkspaceService) ResolvePercentage(monitor string, explicit *int64) (
 
 	if explicit != nil {
 		return explicit, nil
+	}
+
+	if len(ws.state.monitors) == 0 {
+		value := defaultInitialPercentage
+		return &value, nil
 	}
 
 	mon := ws.state.monitors[monitor]

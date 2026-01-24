@@ -23,7 +23,8 @@ var useCmd = &cobra.Command{
 	Long: `Set the workspace size as a percentage of the monitor width.
 
 The gap size is calculated to achieve the desired percentage.
-If no percentage is given, uses the current or default percentage.
+If no percentage is given, uses the current or default percentage. If the
+state file is missing or empty, defaults to 60%.
 
 Examples:
   aerospace-utils workspace use 40

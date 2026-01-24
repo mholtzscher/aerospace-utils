@@ -29,6 +29,8 @@ cargo install --path .
 
 Set the workspace to use a specific percentage of the monitor width. The remaining space is divided equally as gaps on the left and right.
 
+If no percentage is provided and the state file is missing or empty, the tool defaults to 60% on first run.
+
 ```bash
 # Set workspace to 80% of monitor width (10% gap on each side)
 aerospace-utils workspace use 80

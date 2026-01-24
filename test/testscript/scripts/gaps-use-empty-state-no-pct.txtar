@@ -1,7 +1,9 @@
-# Empty state file without percentage fails.
+# Empty state file without percentage uses default.
 
-! exec aerospace-utils workspace use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color
-stderr 'no percentage'
+exec aerospace-utils workspace use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color
+stdout 'Set main to 60%'
+grep 'current = 60' state.toml
+grep 'default = 60' state.toml
 
 -- config.toml --
 start-at-login = true
