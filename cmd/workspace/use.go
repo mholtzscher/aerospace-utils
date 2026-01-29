@@ -39,12 +39,12 @@ Examples:
 			},
 		},
 		Action: func(ctx context.Context, cmd *ufcli.Command) error {
-			return runUse(ctx, cmd)
+			return runUse(cmd)
 		},
 	}
 }
 
-func runUse(ctx context.Context, cmd *ufcli.Command) error {
+func runUse(cmd *ufcli.Command) error {
 	opts := cli.GetOptions(cmd)
 	out := output.New(opts.NoColor)
 

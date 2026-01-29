@@ -20,12 +20,12 @@ Shows:
 - Config file path and gap values
 - State file path and per-monitor percentages`,
 		Action: func(ctx context.Context, cmd *ufcli.Command) error {
-			return runCurrent(ctx, cmd)
+			return runCurrent(cmd)
 		},
 	}
 }
 
-func runCurrent(ctx context.Context, cmd *ufcli.Command) error {
+func runCurrent(cmd *ufcli.Command) error {
 	opts := cli.GetOptions(cmd)
 	out := output.New(opts.NoColor)
 
@@ -116,7 +116,7 @@ func printMonitorsSummary(out *output.Printer, monitors map[string]*config.Monit
 	}
 }
 
-func formatOptionalInt(v *int64) interface{} {
+func formatOptionalInt(v *int64) any {
 	if v == nil {
 		return nil
 	}

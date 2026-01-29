@@ -38,12 +38,12 @@ Examples:
 			},
 		},
 		Action: func(ctx context.Context, cmd *ufcli.Command) error {
-			return runAdjust(ctx, cmd)
+			return runAdjust(cmd)
 		},
 	}
 }
 
-func runAdjust(ctx context.Context, cmd *ufcli.Command) error {
+func runAdjust(cmd *ufcli.Command) error {
 	opts := cli.GetOptions(cmd)
 
 	amount := cmd.Int(flagBy)
