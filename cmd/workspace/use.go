@@ -85,13 +85,40 @@ func applyPercentage(cmd *ufcli.Command, opts *cli.GlobalOptions, out *output.Pr
 		return err
 	}
 
-	// Calculate gap size
-	gapSize := gaps.CalculateGapSize(monitorWidth, *percentage)
+	// Check for existing shift and apply asymmetric gaps if set
+	originalShift, err := stateSvc.GetShift(opts.Monitor)
+	if err != nil {
+		return fmt.Errorf("load shift: %w", err)
+	}
+	shift := originalShift
+
+	useAsymmetric := false
+	var shiftedGaps gaps.ShiftedGaps
+	var symmetricGapSize int64
+	var gapMsg string
+
+	if shift != 0 {
+		if err := gaps.ValidateShift(monitorWidth, *percentage, shift); err != nil {
+			// Shift is no longer valid for the current percentage.
+			shift = 0
+		} else {
+			useAsymmetric = true
+			shiftedGaps = gaps.CalculateShiftedGaps(monitorWidth, *percentage, shift)
+			gapMsg = fmt.Sprintf("(left: %dpx (%d%%), right: %dpx (%d%%))",
+				shiftedGaps.LeftGapPixels, shiftedGaps.LeftGapPercent,
+				shiftedGaps.RightGapPixels, shiftedGaps.RightGapPercent)
+		}
+	}
+
+	if !useAsymmetric {
+		symmetricGapSize = gaps.CalculateGapSize(monitorWidth, *percentage)
+		gapMsg = fmt.Sprintf("(%dpx gaps)", symmetricGapSize)
+	}
 
 	if opts.DryRun {
 		out.DryRun()
-		out.Printf("Would set %s to %d%% (%dpx gaps)\n",
-			opts.Monitor, *percentage, gapSize)
+		out.Printf("Would set %s to %d%% %s\n",
+			opts.Monitor, *percentage, gapMsg)
 		return nil
 	}
 
@@ -104,18 +131,31 @@ func applyPercentage(cmd *ufcli.Command, opts *cli.GlobalOptions, out *output.Pr
 		return fmt.Errorf("config file not found: %s\nCreate it manually or run 'aerospace' to generate a default config", configSvc.ConfigPath())
 	}
 
-	if err := configSvc.SetMonitorGaps(opts.Monitor, gapSize); err != nil {
-		return fmt.Errorf("update config: %w", err)
+	if useAsymmetric {
+		if err := configSvc.SetMonitorAsymmetricGaps(opts.Monitor, shiftedGaps.LeftGapPixels, shiftedGaps.RightGapPixels); err != nil {
+			return fmt.Errorf("update config: %w", err)
+		}
+	} else {
+		if err := configSvc.SetMonitorGaps(opts.Monitor, symmetricGapSize); err != nil {
+			return fmt.Errorf("update config: %w", err)
+		}
 	}
 
 	if err := configSvc.Write(); err != nil {
 		return fmt.Errorf("write config: %w", err)
 	}
 
-	// Update state
+	// Update state - preserves shift by calling Update then SetShift
 	setDefaultFlag := cmd.Bool(flagSetDefault)
 	if err := stateSvc.Update(opts.Monitor, *percentage, setDefaultFlag); err != nil {
 		return fmt.Errorf("write state: %w", err)
+	}
+
+	// If shift was reset, write 0 to clear it
+	if originalShift != shift {
+		if err := stateSvc.SetShift(opts.Monitor, 0); err != nil {
+			return fmt.Errorf("write state: %w", err)
+		}
 	}
 
 	// Reload aerospace config and build single-line output
@@ -135,8 +175,8 @@ func applyPercentage(cmd *ufcli.Command, opts *cli.GlobalOptions, out *output.Pr
 	if setDefaultFlag {
 		defaultSuffix = ", set as default"
 	}
-	out.Success("Set %s to %d%% (%dpx gaps)%s%s\n",
-		opts.Monitor, *percentage, gapSize, defaultSuffix, reloadStatus)
+	out.Success("Set %s to %d%% %s%s%s\n",
+		opts.Monitor, *percentage, gapMsg, defaultSuffix, reloadStatus)
 
 	return nil
 }

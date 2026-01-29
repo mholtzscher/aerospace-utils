@@ -159,6 +159,7 @@ func (ws *WorkspaceService) ResolvePercentage(monitor string, explicit *int64) (
 }
 
 // Update updates the percentage for a monitor and writes to disk.
+// Preserves existing shift value if any.
 func (ws *WorkspaceService) Update(monitor string, percentage int64, setDefault bool) error {
 	if err := ws.loadState(); err != nil {
 		return err
@@ -172,6 +173,37 @@ func (ws *WorkspaceService) Update(monitor string, percentage int64, setDefault 
 	}
 
 	return ws.write()
+}
+
+// SetShift sets the shift value for a monitor and writes to disk.
+func (ws *WorkspaceService) SetShift(monitor string, shift int64) error {
+	if err := ws.loadState(); err != nil {
+		return err
+	}
+
+	mon := ws.getOrCreateMonitor(monitor)
+	mon.Shift = &shift
+
+	return ws.write()
+}
+
+// GetShift returns the shift value for a monitor.
+// Returns 0 if no shift is set.
+func (ws *WorkspaceService) GetShift(monitor string) (int64, error) {
+	if err := ws.loadState(); err != nil {
+		return 0, err
+	}
+
+	if ws.state.monitors == nil {
+		return 0, nil
+	}
+
+	mon := ws.state.monitors[monitor]
+	if mon == nil || mon.Shift == nil {
+		return 0, nil
+	}
+
+	return *mon.Shift, nil
 }
 
 // write writes the state to disk.
@@ -207,6 +239,7 @@ type workspaceState struct {
 type MonitorState struct {
 	Current *int64 `toml:"current,omitempty"`
 	Default *int64 `toml:"default,omitempty"`
+	Shift   *int64 `toml:"shift,omitempty"`
 }
 
 // stateFile is the TOML structure for the state file.

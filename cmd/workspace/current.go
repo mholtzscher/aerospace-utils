@@ -113,6 +113,10 @@ func printMonitorsSummary(out *output.Printer, monitors map[string]*config.Monit
 		out.PrintKeyValue("current", formatOptionalInt(mon.Current))
 		out.Printf("    ")
 		out.PrintKeyValue("default", formatOptionalInt(mon.Default))
+		if mon.Shift != nil && *mon.Shift != 0 {
+			out.Printf("    ")
+			out.PrintKeyValue("shift", formatOptionalInt(mon.Shift))
+		}
 	}
 }
 

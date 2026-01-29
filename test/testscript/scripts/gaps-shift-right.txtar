@@ -1,0 +1,29 @@
+# Test shift right by 5%: with 50% workspace, left gap 30%, right gap 20%.
+
+exec aerospace-utils workspace shift -b 5 --dry-run --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color
+stdout 'left: 576px \(30%\)'
+stdout 'right: 384px \(20%\)'
+stdout '50%'
+
+-- config.toml --
+start-at-login = true
+
+[gaps]
+[gaps.inner]
+horizontal = 10
+vertical = 10
+
+[gaps.outer]
+top = 10
+bottom = 10
+left = [
+    { monitor.main = 100 },
+]
+right = [
+    { monitor.main = 100 },
+]
+
+-- state.toml --
+[monitors.main]
+current = 50
+default = 50

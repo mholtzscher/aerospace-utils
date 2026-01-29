@@ -173,6 +173,77 @@ func (as *AerospaceService) SetMonitorGaps(monitorName string, gapSize int64) er
 	return nil
 }
 
+// SetMonitorAsymmetricGaps updates both left and right gap values for a monitor.
+// Uses regex-based replacement to preserve file formatting.
+func (as *AerospaceService) SetMonitorAsymmetricGaps(monitorName string, leftGap, rightGap int64) error {
+	if err := as.loadConfig(); err != nil {
+		return err
+	}
+
+	content, leftReplaced, err := replaceMonitorGapInSide(as.config.content, "left", monitorName, leftGap)
+	if err != nil {
+		return err
+	}
+	content, rightReplaced, err := replaceMonitorGapInSide(content, "right", monitorName, rightGap)
+	if err != nil {
+		return err
+	}
+
+	if !leftReplaced || !rightReplaced {
+		return fmt.Errorf("%w: %s", ErrMonitorNotFound, monitorName)
+	}
+
+	as.config.content = content
+	return nil
+}
+
+func replaceMonitorGapInSide(content, side, monitorName string, gapSize int64) (string, bool, error) {
+	arrayRe := regexp.MustCompile(fmt.Sprintf(`(?s)(%s\s*=\s*\[)(.*?)(\])`, regexp.QuoteMeta(side)))
+	idx := arrayRe.FindStringSubmatchIndex(content)
+	if idx == nil {
+		return content, false, nil
+	}
+
+	body := content[idx[4]:idx[5]]
+	newBody, replaced := replaceMonitorGapInBody(body, monitorName, gapSize)
+	if !replaced {
+		return content, false, nil
+	}
+
+	updated := content[:idx[4]] + newBody + content[idx[5]:]
+	return updated, true, nil
+}
+
+func replaceMonitorGapInBody(body, monitorName string, gapSize int64) (string, bool) {
+	var patterns []*regexp.Regexp
+
+	if monitorName == "main" || isSimpleKey(monitorName) {
+		patterns = append(patterns, regexp.MustCompile(
+			fmt.Sprintf(`(monitor\.%s\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
+		))
+	}
+
+	patterns = append(patterns, regexp.MustCompile(
+		fmt.Sprintf(`(monitor\.'%s'\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
+	))
+
+	patterns = append(patterns, regexp.MustCompile(
+		fmt.Sprintf(`(monitor\."%s"\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
+	))
+
+	newValue := strconv.FormatInt(gapSize, 10)
+	replaced := false
+
+	for _, p := range patterns {
+		if p.MatchString(body) {
+			body = p.ReplaceAllString(body, "${1}"+newValue)
+			replaced = true
+		}
+	}
+
+	return body, replaced
+}
+
 // Write writes the config back to disk atomically.
 func (as *AerospaceService) Write() error {
 	if as.config == nil {

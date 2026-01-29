@@ -1,0 +1,39 @@
+# Test that shift persists after use (use preserves shift).
+
+# First, set a shift
+exec aerospace-utils workspace shift -b 5 --config-path config.toml --state-path state.toml --monitor-width 1920 --no-reload --no-color
+
+# Then use a new percentage - shift should be preserved
+exec aerospace-utils workspace use --config-path config.toml --state-path state.toml --monitor-width 1920 --no-reload --no-color 60
+
+# Verify state shows new percentage but preserved shift
+grep 'current = 60' state.toml
+grep 'shift = 5' state.toml
+
+# Now verify config has asymmetric gaps
+# For 1920px at 60% with 5% shift: left = 25% = 480px, right = 15% = 288px
+grep 'monitor.main = 480' config.toml  # left gap for 60% with 5% shift
+grep 'monitor.main = 288' config.toml  # right gap for 60% with 5% shift
+
+-- config.toml --
+start-at-login = true
+
+[gaps]
+[gaps.inner]
+horizontal = 10
+vertical = 10
+
+[gaps.outer]
+top = 10
+bottom = 10
+left = [
+    { monitor.main = 100 },
+]
+right = [
+    { monitor.main = 100 },
+]
+
+-- state.toml --
+[monitors.main]
+current = 50
+default = 50

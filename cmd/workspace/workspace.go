@@ -14,6 +14,7 @@ func NewCommand() *ufcli.Command {
 		Commands: []*ufcli.Command{
 			newUseCommand(),
 			newAdjustCommand(),
+			newShiftCommand(),
 			newCurrentCommand(),
 		},
 	}
