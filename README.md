@@ -18,7 +18,13 @@ A CLI tool to dynamically adjust [Aerospace](https://github.com/nikitabobko/Aero
 - [Aerospace](https://github.com/nikitabobko/AeroSpace) installed and in your `PATH`.
 - Go 1.22+ (if building from source).
 
-### Install via Nix Flake (Recommended)
+### Install via Homebrew (Recommended)
+
+```bash
+brew install mholtzscher/tap/aerospace-utils
+```
+
+### Install via Nix Flake
 
 You can run the tool directly using Nix:
 
