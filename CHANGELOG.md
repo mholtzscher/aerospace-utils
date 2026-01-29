@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/mholtzscher/aerospace-utils/compare/v0.3.1...v0.3.2) (2026-01-29)
+
+
+### Features
+
+* **build:** enable CGO and remove amd64 from goarch in goreleaser config ([9dcee05](https://github.com/mholtzscher/aerospace-utils/commit/9dcee0504d0df8975b83b8a62bab3a9f15858241))
+
 ## [0.3.1](https://github.com/mholtzscher/aerospace-utils/compare/v0.3.0...v0.3.1) (2026-01-29)
 
 
