@@ -14,10 +14,11 @@ builds:
     ldflags:
       - -s -w
       - -X github.com/mholtzscher/aerospace-utils/cmd.Version={{.Version}}
+    env:
+      - CGO_ENABLED=1
     goos:
       - darwin
     goarch:
-      - amd64
       - arm64
 
 archives:
