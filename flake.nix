@@ -26,7 +26,7 @@
           overlays = [ gomod2nix.overlays.default ];
         };
 
-        version = "0.3.2"; # x-release-please-version
+        version = "0.3.3"; # x-release-please-version
 
         # macOS-specific build inputs for CoreGraphics CGO bindings
         darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [

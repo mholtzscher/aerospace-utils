@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/mholtzscher/aerospace-utils/compare/v0.3.2...v0.3.3) (2026-01-29)
+
+
+### Features
+
+* **release:** switch Homebrew tap token from HOMEBREW_TAP_TOKEN to PAT in release workflow and goreleaser config ([82603d9](https://github.com/mholtzscher/aerospace-utils/commit/82603d95bd43eb49dfbf0da37cdb8f9fea3ae338))
+
 ## [0.3.2](https://github.com/mholtzscher/aerospace-utils/compare/v0.3.1...v0.3.2) (2026-01-29)
 
 
