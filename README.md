@@ -176,7 +176,7 @@ These options are available for all commands:
 - `--state-path <PATH>`: Manually specify `aerospace-utils-state.toml` path.
 - `--monitor-width <PX>`: Override automatic monitor width detection (advanced).
 
-## How it Works
+## How It Works
 
 The tool detects your main monitor's width and calculates the outer gaps required to achieve the desired workspace percentage.
 
