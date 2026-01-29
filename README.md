@@ -18,11 +18,25 @@ A CLI tool to dynamically adjust [Aerospace](https://github.com/nikitabobko/Aero
 - [Aerospace](https://github.com/nikitabobko/AeroSpace) installed and in your `PATH`.
 - Go 1.22+ (if building from source).
 
-### Install via Nix (Recommended)
+### Install via Nix Flake (Recommended)
+
+You can run the tool directly using Nix:
+
+```bash
+nix run github:mholtzscher/aerospace-utils
+```
+
+Or install it into your profile:
+
+```bash
+nix profile install github:mholtzscher/aerospace-utils
+```
+
+If you have the repository cloned locally:
 
 ```bash
 nix build
-nix run
+./result/bin/aerospace-utils --help
 ```
 
 ### Build from Source
