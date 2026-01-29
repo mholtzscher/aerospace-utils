@@ -10,7 +10,7 @@ import (
 )
 
 // Version is set at build time.
-var Version = "0.2.0"
+var Version = "0.2.0" // x-release-please-version
 
 // Run is the entry point for the CLI.
 func Run(ctx context.Context, args []string) error {

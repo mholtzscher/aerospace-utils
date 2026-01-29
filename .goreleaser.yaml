@@ -1,0 +1,59 @@
+version: 2
+
+project_name: aerospace-utils
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: aerospace-utils
+    main: .
+    binary: aerospace-utils
+    ldflags:
+      - -s -w
+      - -X github.com/mholtzscher/aerospace-utils/cmd.Version={{.Version}}
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  use: github-native
+
+brews:
+  - name: aerospace-utils
+    repository:
+      owner: mholtzscher
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/mholtzscher/aerospace-utils"
+    description: "CLI for managing Aerospace workspace sizing based on monitor gaps"
+    license: "MIT"
+    install: |
+      bin.install "aerospace-utils"
+    test: |
+      system "#{bin}/aerospace-utils", "--version"
+
+release:
+  github:
+    owner: mholtzscher
+    name: aerospace-utils
+  prerelease: auto
+  name_template: "v{{.Version}}"
