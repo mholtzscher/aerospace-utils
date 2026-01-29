@@ -14,8 +14,7 @@ A CLI tool to dynamically adjust [Aerospace](https://github.com/nikitabobko/Aero
 
 ### Prerequisites
 
-- macOS (primary support, uses CoreGraphics for monitor detection).
-- Linux (experimental support via `xrandr` for development).
+- macOS (required for monitor width detection).
 - [Aerospace](https://github.com/nikitabobko/AeroSpace) installed and in your `PATH`.
 - Go 1.22+ (if building from source).
 
