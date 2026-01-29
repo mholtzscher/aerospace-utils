@@ -15,28 +15,29 @@ A small CLI for adjusting Aerospace workspace sizing based on monitor gaps.
 
 ## Commands
 
-Uses direnv with nix flake for automatic environment setup. Dev scripts are provided via the flake.
+Uses direnv with nix flake for automatic environment setup. Use `just` for development tasks.
 
 ```bash
 # Build
-dev-build                      # dev build
-dev-build-release              # release build
+just build                     # dev build
+just build-release             # release build
 
 # Run
-dev-run <args>                 # run locally
+just run <args>                # run locally
 
 # Test (e2e only)
-dev-test                       # all e2e tests
-dev-test-verbose               # verbose e2e output
+just test                      # all e2e tests
+just test-verbose              # verbose e2e output
 
 # Lint/format
-dev-fmt                        # format code
-dev-vet                        # static analysis
-dev-lint                       # comprehensive linting (golangci-lint)
-dev-check                      # run all checks (fmt, vet, lint, test)
+just fmt                       # format code
+just vet                       # static analysis
+just lint                      # comprehensive linting (golangci-lint)
+just check                     # run all checks (fmt, vet, lint, test)
 
 # Dependencies
-dev-tidy                       # go mod tidy
+just tidy                      # go mod tidy
+just update-deps               # update dependencies and gomod2nix.toml
 
 # Nix build/run
 nix build                      # build package
