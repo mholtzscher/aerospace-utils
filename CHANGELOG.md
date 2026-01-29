@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/mholtzscher/aerospace-utils/compare/v0.3.0...v0.3.1) (2026-01-29)
+
+
+### Features
+
+* **release:** integrate GoReleaser into release-please workflow and remove standalone release workflow ([aa7141e](https://github.com/mholtzscher/aerospace-utils/commit/aa7141e2416505453a022ecf10f76eaf4022ae3c))
+
 ## [0.3.0](https://github.com/mholtzscher/aerospace-utils/compare/v0.2.0...v0.3.0) (2026-01-29)
 
 
