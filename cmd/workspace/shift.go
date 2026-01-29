@@ -25,12 +25,14 @@ With a 50% workspace, the side gaps are 25% each.
 Shift left by 5% -> left gap 20%, right gap 30%
 Shift right by 5% -> left gap 30%, right gap 20%
 
+Shifts are cumulative - each command adds to the current shift.
 Running shift without --by resets shift to 0 (centered).
 
 Examples:
   aerospace-utils workspace shift           # reset to centered
-  aerospace-utils workspace shift -b -5     # shift 5% left
-  aerospace-utils workspace shift -b 5      # shift 5% right`,
+  aerospace-utils workspace shift -b -5     # shift 5% left from current
+  aerospace-utils workspace shift -b 5      # shift 5% right from current
+  aerospace-utils workspace shift -b 3      # another 3% right (now 8% right total)`,
 		Flags: []ufcli.Flag{
 			&ufcli.IntFlag{
 				Name:    flagShiftBy,
@@ -49,13 +51,13 @@ func runShift(cmd *ufcli.Command) error {
 	opts := cli.GetOptions(cmd)
 	out := output.New(opts.NoColor)
 
-	shift := cmd.Int(flagShiftBy)
+	amount := cmd.Int(flagShiftBy)
 
 	// Create services
 	configSvc := config.NewAerospaceService(opts.ConfigPath)
 	stateSvc := config.NewWorkspaceService(opts.StatePath)
 
-	// Get current percentage for this monitor
+	// Get current state for this monitor
 	monState, err := stateSvc.GetMonitorState(opts.Monitor)
 	if err != nil {
 		return fmt.Errorf("load state: %w", err)
@@ -69,6 +71,22 @@ func runShift(cmd *ufcli.Command) error {
 		return err
 	}
 
+	// Get current shift (0 if not set)
+	currentShift := int64(0)
+	if monState.Shift != nil {
+		currentShift = *monState.Shift
+	}
+
+	// Calculate new shift
+	var newShift int64
+	if cmd.IsSet(flagShiftBy) {
+		// Flag was explicitly set - add to current shift (cumulative)
+		newShift = currentShift + int64(amount)
+	} else {
+		// No flag provided - reset to 0 (centered)
+		newShift = 0
+	}
+
 	// Get monitor width
 	monitorWidth, err := resolveMonitorWidth(opts)
 	if err != nil {
@@ -76,9 +94,11 @@ func runShift(cmd *ufcli.Command) error {
 	}
 
 	// Validate shift is within bounds
-	if err := gaps.ValidateShift(monitorWidth, percentage, int64(shift)); err != nil {
+	if err := gaps.ValidateShift(monitorWidth, percentage, newShift); err != nil {
 		return fmt.Errorf("invalid shift: %w", err)
 	}
+
+	shift := newShift
 
 	// Calculate shifted gaps
 	shiftedGaps := gaps.CalculateShiftedGaps(monitorWidth, percentage, int64(shift))

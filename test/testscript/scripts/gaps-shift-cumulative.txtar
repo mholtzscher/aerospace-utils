@@ -1,0 +1,44 @@
+# Test cumulative shift: running shift multiple times adds up.
+
+# First shift: 3% right (from 0% -> 3%)
+exec aerospace-utils workspace shift -b 3 --config-path config.toml --state-path state.toml --monitor-width 1920 --no-reload --no-color
+stdout 'left: 538px \(28%\)'
+stdout 'right: 422px \(22%\)'
+
+# Second shift: another 5% right (from 3% -> 8% total)
+exec aerospace-utils workspace shift -b 5 --config-path config.toml --state-path state.toml --monitor-width 1920 --no-reload --no-color
+stdout 'left: 634px \(33%\)'
+stdout 'right: 326px \(17%\)'
+
+# Third shift: -10% (from 8% -> -2% total, shifted left)
+exec aerospace-utils workspace shift -b -10 --config-path config.toml --state-path state.toml --monitor-width 1920 --no-reload --no-color
+stdout 'left: 442px \(23%\)'
+stdout 'right: 518px \(27%\)'
+
+# Verify final state
+exec cat state.toml
+stdout 'shift = -2'
+
+-- config.toml --
+start-at-login = true
+
+[gaps]
+[gaps.inner]
+horizontal = 10
+vertical = 10
+
+[gaps.outer]
+top = 10
+bottom = 10
+left = [
+    { monitor.main = 100 },
+]
+right = [
+    { monitor.main = 100 },
+]
+
+-- state.toml --
+[monitors.main]
+current = 50
+default = 50
+shift = 0
