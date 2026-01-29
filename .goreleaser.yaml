@@ -42,7 +42,7 @@ brews:
     repository:
       owner: mholtzscher
       name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+      token: "{{ .Env.PAT }}"
     directory: Formula
     homepage: "https://github.com/mholtzscher/aerospace-utils"
     description: "CLI for managing Aerospace workspace sizing based on monitor gaps"
