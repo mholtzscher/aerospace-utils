@@ -54,7 +54,14 @@ If you have `direnv` and `nix` installed:
 direnv allow
 ```
 
-This will provide a shell with all necessary dependencies (Go, golangci-lint, etc.) and development scripts (e.g., `dev-build`, `dev-test`).
+This will provide a shell with all necessary dependencies (Go, golangci-lint, `just`, etc.).
+
+Common development commands (via `just`):
+
+- `just build`: Build the binary.
+- `just run`: Run the tool locally.
+- `just test`: Run tests.
+- `just check`: Run formatting, vetting, linting, and testing.
 
 ## Usage
 
@@ -144,14 +151,14 @@ The tool detects your main monitor's width and calculates the outer gaps require
 - Gap per side: `300px`
 
 ```
-           Monitor Width (100%)
+            Monitor Width (100%)
 ┌──────────────────────────────────────────┐
-│      Gap        Workspace        Gap     │
-│    ┌─────┐┌──────────────────┐┌─────┐    │
-│    │     ││                  ││     │    │
-│    │ 300 ││       2400       ││ 300 │    │
-│    │     ││                  ││     │    │
-│    └─────┘└──────────────────┘└─────┘    │
+│    Gap         Workspace         Gap     │
+│  ┌─────┐  ┌──────────────────┐  ┌─────┐  │
+│  │     │  │                  │  │     │  │
+│  │ 300 │  │       2400       │  │ 300 │  │
+│  │     │  │                  │  │     │  │
+│  └─────┘  └──────────────────┘  └─────┘  │
 └──────────────────────────────────────────┘
 ```
 
@@ -174,12 +181,12 @@ You can keep the same workspace width but shift it left/right by redistributing 
 ```
             Monitor Width (100%)
 ┌──────────────────────────────────────────┐
-│   Gap        Workspace           Gap     │
-│ ┌─────┐┌──────────────────┐┌────────┐   │
-│ │     ││                  ││        │   │
-│ │ 600 ││       1500       ││  900   │   │
-│ │     ││                  ││        │   │
-│ └─────┘└──────────────────┘└────────┘   │
+│   Gap         Workspace          Gap     │
+│ ┌─────┐  ┌─────────────────┐  ┌───────┐  │
+│ │     │  │                 │  │       │  │
+│ │ 600 │  │      1500       │  │  900  │  │
+│ │     │  │                 │  │       │  │
+│ └─────┘  └─────────────────┘  └───────┘  │
 └──────────────────────────────────────────┘
 ```
 
