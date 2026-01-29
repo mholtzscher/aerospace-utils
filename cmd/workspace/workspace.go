@@ -2,12 +2,19 @@
 package workspace
 
 import (
-	"github.com/spf13/cobra"
+	ufcli "github.com/urfave/cli/v3"
 )
 
-// Cmd is the parent command for workspace-related subcommands.
-var Cmd = &cobra.Command{
-	Use:   "workspace",
-	Short: "Manage Aerospace workspace sizing",
-	Long:  `Commands for viewing and adjusting workspace sizing based on monitor gaps.`,
+// NewCommand creates the parent workspace command with all subcommands.
+func NewCommand() *ufcli.Command {
+	return &ufcli.Command{
+		Name:        "workspace",
+		Usage:       "Manage Aerospace workspace sizing",
+		Description: `Commands for viewing and adjusting workspace sizing based on monitor gaps.`,
+		Commands: []*ufcli.Command{
+			newUseCommand(),
+			newAdjustCommand(),
+			newCurrentCommand(),
+		},
+	}
 }

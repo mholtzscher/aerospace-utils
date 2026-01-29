@@ -1,4 +1,4 @@
 # Unknown command returns error.
 
 ! exec aerospace-utils unknown
-stderr 'unknown command'
+stderr 'No help topic for'

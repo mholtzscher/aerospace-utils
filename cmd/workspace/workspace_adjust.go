@@ -1,21 +1,23 @@
 package workspace
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
 	"github.com/mholtzscher/aerospace-utils/internal/config"
 	"github.com/mholtzscher/aerospace-utils/internal/gaps"
-	"github.com/spf13/cobra"
+	ufcli "github.com/urfave/cli/v3"
 )
 
 var adjustAmount int64
 
-var adjustCmd = &cobra.Command{
-	Use:   "adjust",
-	Short: "Adjust workspace size by amount",
-	Long: `Adjust the workspace size percentage by a given amount.
+func newAdjustCommand() *ufcli.Command {
+	return &ufcli.Command{
+		Name:  "adjust",
+		Usage: "Adjust workspace size by amount",
+		Description: `Adjust the workspace size percentage by a given amount.
 
 Positive values increase the workspace size (smaller gaps).
 Negative values decrease the workspace size (larger gaps).
@@ -27,18 +29,22 @@ Examples:
   aerospace-utils workspace adjust -b -5     # -5%
   aerospace-utils workspace adjust --by=-10  # -10%
   aerospace-utils workspace adjust -b -10 --monitor "Dell U2722D"`,
-	Args: cobra.NoArgs,
-	RunE: runAdjust,
+		Flags: []ufcli.Flag{
+			&ufcli.IntFlag{
+				Name:        "by",
+				Aliases:     []string{"b"},
+				Destination: &adjustAmount,
+				Value:       5,
+				Usage:       "Amount to adjust workspace size percentage (positive or negative)",
+			},
+		},
+		Action: func(_ context.Context, _ *ufcli.Command) error {
+			return runAdjust()
+		},
+	}
 }
 
-func init() {
-	Cmd.AddCommand(adjustCmd)
-
-	adjustCmd.Flags().Int64VarP(&adjustAmount, "by", "b", 5,
-		"Amount to adjust workspace size percentage (positive or negative)")
-}
-
-func runAdjust(c *cobra.Command, args []string) error {
+func runAdjust() error {
 	opts := cli.GetOptions()
 
 	amount := adjustAmount

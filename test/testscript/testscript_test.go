@@ -2,6 +2,8 @@
 package testscript
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -10,9 +12,17 @@ import (
 	"github.com/rogpeppe/go-internal/testscript"
 )
 
+func runCmd() {
+	if err := cmd.Run(context.Background(), os.Args); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	os.Exit(0)
+}
+
 func TestMain(m *testing.M) {
 	testscript.Main(m, map[string]func(){
-		"aerospace-utils": cmd.Main,
+		"aerospace-utils": runCmd,
 	})
 }
 

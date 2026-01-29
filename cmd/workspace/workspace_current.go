@@ -1,30 +1,31 @@
 package workspace
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
 	"github.com/mholtzscher/aerospace-utils/internal/config"
 	"github.com/mholtzscher/aerospace-utils/internal/output"
-	"github.com/spf13/cobra"
+	ufcli "github.com/urfave/cli/v3"
 )
 
-var currentCmd = &cobra.Command{
-	Use:   "current",
-	Short: "Show current gap configuration and state",
-	Long: `Display the current aerospace gap configuration and workspace state.
+func newCurrentCommand() *ufcli.Command {
+	return &ufcli.Command{
+		Name:  "current",
+		Usage: "Show current gap configuration and state",
+		Description: `Display the current aerospace gap configuration and workspace state.
 
 Shows:
 - Config file path and gap values
 - State file path and per-monitor percentages`,
-	RunE: runCurrent,
+		Action: func(_ context.Context, _ *ufcli.Command) error {
+			return runCurrent()
+		},
+	}
 }
 
-func init() {
-	Cmd.AddCommand(currentCmd)
-}
-
-func runCurrent(c *cobra.Command, args []string) error {
+func runCurrent() error {
 	opts := cli.GetOptions()
 	out := output.New(opts.NoColor)
 

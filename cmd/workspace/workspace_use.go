@@ -1,6 +1,7 @@
 package workspace
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -12,15 +13,16 @@ import (
 	"github.com/mholtzscher/aerospace-utils/internal/display"
 	"github.com/mholtzscher/aerospace-utils/internal/gaps"
 	"github.com/mholtzscher/aerospace-utils/internal/output"
-	"github.com/spf13/cobra"
+	ufcli "github.com/urfave/cli/v3"
 )
 
 var setDefault bool
 
-var useCmd = &cobra.Command{
-	Use:   "use [percent]",
-	Short: "Set workspace size percentage",
-	Long: `Set the workspace size as a percentage of the monitor width.
+func newUseCommand() *ufcli.Command {
+	return &ufcli.Command{
+		Name:  "use",
+		Usage: "Set workspace size percentage",
+		Description: `Set the workspace size as a percentage of the monitor width.
 
 The gap size is calculated to achieve the desired percentage.
 If no percentage is given, uses the current or default percentage. If the
@@ -30,30 +32,37 @@ Examples:
   aerospace-utils workspace use 40
   aerospace-utils workspace use 80 --monitor "Dell U2722D"
   aerospace-utils workspace use --set-default 50`,
-	Args: cobra.MaximumNArgs(1),
-	RunE: runUse,
+		Flags: []ufcli.Flag{
+			&ufcli.BoolFlag{
+				Name:        "set-default",
+				Destination: &setDefault,
+				Usage:       "Also set as the default percentage for this monitor",
+			},
+		},
+		Action: func(ctx context.Context, cmd *ufcli.Command) error {
+			return runUse(cmd)
+		},
+	}
 }
 
-func init() {
-	Cmd.AddCommand(useCmd)
-	useCmd.Flags().BoolVar(&setDefault, "set-default", false,
-		"Also set as the default percentage for this monitor")
-}
-
-func runUse(c *cobra.Command, args []string) error {
+func runUse(cmd *ufcli.Command) error {
 	opts := cli.GetOptions()
 	out := output.New(opts.NoColor)
 
 	// Parse optional percentage argument
 	var explicitPercent *int64
-	if len(args) > 0 {
-		p, err := strconv.ParseInt(args[0], 10, 64)
+	if cmd.Args().Len() > 0 {
+		p, err := strconv.ParseInt(cmd.Args().Get(0), 10, 64)
 		if err != nil {
-			return fmt.Errorf("invalid percentage %q: %w", args[0], err)
+			return fmt.Errorf("invalid percentage %q: %w", cmd.Args().Get(0), err)
 		}
 		explicitPercent = &p
 	}
 
+	return applyPercentage(opts, out, explicitPercent)
+}
+
+func applyPercentage(opts *cli.GlobalOptions, out *output.Printer, explicitPercent *int64) error {
 	configSvc := config.NewAerospaceService(opts.ConfigPath)
 	stateSvc := config.NewWorkspaceService(opts.StatePath)
 
@@ -136,7 +145,7 @@ func runUse(c *cobra.Command, args []string) error {
 func resolveMonitorWidth(opts *cli.GlobalOptions) (int64, error) {
 	// Use explicit override if provided
 	if opts.MonitorWidth > 0 {
-		return opts.MonitorWidth, nil
+		return int64(opts.MonitorWidth), nil
 	}
 
 	// Check if display detection is available
@@ -174,5 +183,7 @@ func resolveMonitorWidth(opts *cli.GlobalOptions) (int64, error) {
 
 // RunWithPercent is called by adjust to apply a calculated percentage.
 func RunWithPercent(percentage int64) error {
-	return runUse(useCmd, []string{strconv.FormatInt(percentage, 10)})
+	opts := cli.GetOptions()
+	out := output.New(opts.NoColor)
+	return applyPercentage(opts, out, &percentage)
 }

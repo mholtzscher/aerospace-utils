@@ -1,4 +1,4 @@
-# Unknown gaps subcommand shows available commands.
+# Unknown gaps subcommand shows error message.
 
-exec aerospace-utils workspace unknown
-stdout 'Available Commands'
+! exec aerospace-utils workspace unknown
+stderr 'No help topic for'
