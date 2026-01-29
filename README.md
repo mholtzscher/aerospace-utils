@@ -14,15 +14,34 @@ A CLI tool to dynamically adjust [Aerospace](https://github.com/nikitabobko/Aero
 
 ### Prerequisites
 
-- macOS (required for monitor width detection)
+- macOS (primary support, uses CoreGraphics for monitor detection).
+- Linux (experimental support via `xrandr` for development).
 - [Aerospace](https://github.com/nikitabobko/AeroSpace) installed and in your `PATH`.
-- Rust toolchain (cargo).
+- Go 1.22+ (if building from source).
 
-### Install via Cargo
+### Install via Nix (Recommended)
 
 ```bash
-cargo install --path .
+nix build
+nix run
 ```
+
+### Build from Source
+
+```bash
+go build -o aerospace-utils .
+```
+
+### Development Environment
+
+This project uses [direnv](https://direnv.net/) and [Nix](https://nixos.org/) for automatic environment setup.
+If you have `direnv` and `nix` installed:
+
+```bash
+direnv allow
+```
+
+This will provide a shell with all necessary dependencies (Go, golangci-lint, etc.) and development scripts (e.g., `dev-build`, `dev-test`).
 
 ## Usage
 
@@ -38,6 +57,9 @@ aerospace-utils workspace use 80
 
 # Set size and save as default for future adjustments
 aerospace-utils workspace use 80 --set-default
+
+# Target a specific monitor by name
+aerospace-utils workspace use 70 --monitor "Dell U2722D"
 ```
 
 ### Adjust Size
@@ -54,6 +76,9 @@ aerospace-utils workspace adjust -b 10
 # Decrease workspace width by 5%
 aerospace-utils workspace adjust -b -5
 aerospace-utils workspace adjust --by=-5
+
+# Adjust on a specific monitor
+aerospace-utils workspace adjust -b 5 --monitor "Dell U2722D"
 ```
 
 ### Shift Position
@@ -69,6 +94,9 @@ aerospace-utils workspace shift -b 5
 
 # Reset shift back to centered
 aerospace-utils workspace shift
+
+# Shift on a specific monitor
+aerospace-utils workspace shift -b 5 --monitor "Dell U2722D"
 ```
 
 ### View Configuration
@@ -79,18 +107,18 @@ Display the current resolved paths, calculated gaps, and saved state.
 aerospace-utils workspace current
 ```
 
-### Workspace Options
+### Global Options
 
-These options are available under `aerospace-utils workspace`.
+These options are available for all commands:
 
+- `--monitor <NAME>`: Target specific monitor (default: "main").
 - `--dry-run`: Print actions without modifying files or reloading Aerospace.
 - `--verbose`: Show detailed processing information.
 - `--no-reload`: Skip the `aerospace reload-config` command after updating configuration.
+- `--no-color`: Disable colored output.
 - `--config-path <PATH>`: Manually specify `aerospace.toml` path.
 - `--state-path <PATH>`: Manually specify `aerospace-utils-state.toml` path.
-
-#### Advanced / Debug Options
-- `--monitor-width <PX>`: Override automatic monitor width detection (useful for testing or non-macOS).
+- `--monitor-width <PX>`: Override automatic monitor width detection (advanced).
 
 ## How it Works
 
@@ -114,7 +142,7 @@ The tool detects your main monitor's width and calculates the outer gaps require
 └──────────────────────────────────────────┘
 ```
 
-It updates the `[gaps.outer.left]` and `[gaps.outer.right]` settings for `monitor.main` in your `aerospace.toml`.
+It updates the `[gaps.outer.left]` and `[gaps.outer.right]` settings for the target monitor (default: `monitor.main`) in your `aerospace.toml`.
 
 Note: when writing, the tool re-encodes `aerospace.toml` (comments/formatting may change).
 
@@ -146,7 +174,7 @@ You can keep the same workspace width but shift it left/right by redistributing 
 
 1.  **`aerospace.toml`**: The tool modifies this file to apply the gaps.
     *   It expects `[gaps.outer.left]` and `[gaps.outer.right]` to be arrays.
-    *   It specifically targets the entry for `monitor.main` (conventionally the second item or an explicit table).
+    *   It targets the entry matching the specified monitor name (default: "main").
 
 2.  **`aerospace-utils-state.toml`**: Stores the current percentage and default preference.
     *   Default location: `~/.config/aerospace/aerospace-utils-state.toml`
