@@ -19,6 +19,13 @@ var (
 
 const defaultInitialPercentage int64 = 60
 
+// TOML keys for the state file.
+const (
+	StateKeyMonitors = "monitors"
+	StateKeyCurrent  = "current"
+	StateKeyDefault  = "default"
+)
+
 // WorkspaceService abstracts state file resolution, loading, and writing.
 type WorkspaceService struct {
 	statePath string

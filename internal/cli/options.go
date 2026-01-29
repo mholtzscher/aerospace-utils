@@ -3,6 +3,18 @@ package cli
 
 import ufcli "github.com/urfave/cli/v3"
 
+// Flag names for global options.
+const (
+	FlagConfigPath   = "config-path"
+	FlagStatePath    = "state-path"
+	FlagMonitor      = "monitor"
+	FlagMonitorWidth = "monitor-width"
+	FlagNoReload     = "no-reload"
+	FlagDryRun       = "dry-run"
+	FlagVerbose      = "verbose"
+	FlagNoColor      = "no-color"
+)
+
 // GlobalOptions holds flags available to all subcommands.
 type GlobalOptions struct {
 	ConfigPath   string
@@ -28,13 +40,13 @@ func GetOptions(cmd *ufcli.Command) *GlobalOptions {
 	}
 
 	return &GlobalOptions{
-		ConfigPath:   root.String("config-path"),
-		StatePath:    root.String("state-path"),
-		Monitor:      root.String("monitor"),
-		MonitorWidth: root.Int("monitor-width"),
-		NoReload:     root.Bool("no-reload"),
-		DryRun:       root.Bool("dry-run"),
-		Verbose:      root.Bool("verbose"),
-		NoColor:      root.Bool("no-color"),
+		ConfigPath:   root.String(FlagConfigPath),
+		StatePath:    root.String(FlagStatePath),
+		Monitor:      root.String(FlagMonitor),
+		MonitorWidth: root.Int(FlagMonitorWidth),
+		NoReload:     root.Bool(FlagNoReload),
+		DryRun:       root.Bool(FlagDryRun),
+		Verbose:      root.Bool(FlagVerbose),
+		NoColor:      root.Bool(FlagNoColor),
 	}
 }

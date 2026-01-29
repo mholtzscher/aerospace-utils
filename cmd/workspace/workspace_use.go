@@ -16,7 +16,7 @@ import (
 	ufcli "github.com/urfave/cli/v3"
 )
 
-var setDefault bool
+const flagSetDefault = "set-default"
 
 func newUseCommand() *ufcli.Command {
 	return &ufcli.Command{
@@ -34,9 +34,8 @@ Examples:
   aerospace-utils workspace use --set-default 50`,
 		Flags: []ufcli.Flag{
 			&ufcli.BoolFlag{
-				Name:        "set-default",
-				Destination: &setDefault,
-				Usage:       "Also set as the default percentage for this monitor",
+				Name:  flagSetDefault,
+				Usage: "Also set as the default percentage for this monitor",
 			},
 		},
 		Action: func(ctx context.Context, cmd *ufcli.Command) error {
@@ -59,10 +58,10 @@ func runUse(ctx context.Context, cmd *ufcli.Command) error {
 		explicitPercent = &p
 	}
 
-	return applyPercentage(opts, out, explicitPercent)
+	return applyPercentage(cmd, opts, out, explicitPercent)
 }
 
-func applyPercentage(opts *cli.GlobalOptions, out *output.Printer, explicitPercent *int64) error {
+func applyPercentage(cmd *ufcli.Command, opts *cli.GlobalOptions, out *output.Printer, explicitPercent *int64) error {
 	configSvc := config.NewAerospaceService(opts.ConfigPath)
 	stateSvc := config.NewWorkspaceService(opts.StatePath)
 
@@ -114,7 +113,8 @@ func applyPercentage(opts *cli.GlobalOptions, out *output.Printer, explicitPerce
 	}
 
 	// Update state
-	if err := stateSvc.Update(opts.Monitor, *percentage, setDefault); err != nil {
+	setDefaultFlag := cmd.Bool(flagSetDefault)
+	if err := stateSvc.Update(opts.Monitor, *percentage, setDefaultFlag); err != nil {
 		return fmt.Errorf("write state: %w", err)
 	}
 
@@ -132,7 +132,7 @@ func applyPercentage(opts *cli.GlobalOptions, out *output.Printer, explicitPerce
 	}
 
 	defaultSuffix := ""
-	if setDefault {
+	if setDefaultFlag {
 		defaultSuffix = ", set as default"
 	}
 	out.Success("Set %s to %d%% (%dpx gaps)%s%s\n",
@@ -185,5 +185,5 @@ func resolveMonitorWidth(opts *cli.GlobalOptions) (int64, error) {
 func RunWithPercent(cmd *ufcli.Command, percentage int64) error {
 	opts := cli.GetOptions(cmd)
 	out := output.New(opts.NoColor)
-	return applyPercentage(opts, out, &percentage)
+	return applyPercentage(cmd, opts, out, &percentage)
 }

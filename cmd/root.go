@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/mholtzscher/aerospace-utils/cmd/workspace"
+	"github.com/mholtzscher/aerospace-utils/internal/cli"
 	ufcli "github.com/urfave/cli/v3"
 )
 
@@ -19,38 +20,38 @@ func Run(ctx context.Context, args []string) error {
 		Version: Version,
 		Flags: []ufcli.Flag{
 			&ufcli.StringFlag{
-				Name:  "config-path",
+				Name:  cli.FlagConfigPath,
 				Usage: "Path to aerospace.toml (default: ~/.config/aerospace/aerospace.toml)",
 			},
 			&ufcli.StringFlag{
-				Name:  "state-path",
+				Name:  cli.FlagStatePath,
 				Usage: "Path to aerospace-utils-state.toml (default: ~/.config/aerospace/aerospace-utils-state.toml)",
 			},
 			&ufcli.StringFlag{
-				Name:  "monitor",
+				Name:  cli.FlagMonitor,
 				Value: "main",
 				Usage: "Target monitor name",
 			},
 			&ufcli.IntFlag{
-				Name:   "monitor-width",
+				Name:   cli.FlagMonitorWidth,
 				Value:  0,
 				Hidden: true,
 				Usage:  "Override detected monitor width in pixels",
 			},
 			&ufcli.BoolFlag{
-				Name:  "no-reload",
+				Name:  cli.FlagNoReload,
 				Usage: "Skip aerospace reload-config after changes",
 			},
 			&ufcli.BoolFlag{
-				Name:  "dry-run",
+				Name:  cli.FlagDryRun,
 				Usage: "Print actions without writing changes",
 			},
 			&ufcli.BoolFlag{
-				Name:  "verbose",
+				Name:  cli.FlagVerbose,
 				Usage: "Print verbose output",
 			},
 			&ufcli.BoolFlag{
-				Name:  "no-color",
+				Name:  cli.FlagNoColor,
 				Usage: "Disable colored output",
 			},
 		},

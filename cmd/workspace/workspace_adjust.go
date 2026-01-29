@@ -11,7 +11,7 @@ import (
 	ufcli "github.com/urfave/cli/v3"
 )
 
-var adjustAmount int64
+const flagBy = "by"
 
 func newAdjustCommand() *ufcli.Command {
 	return &ufcli.Command{
@@ -31,11 +31,10 @@ Examples:
   aerospace-utils workspace adjust -b -10 --monitor "Dell U2722D"`,
 		Flags: []ufcli.Flag{
 			&ufcli.IntFlag{
-				Name:        "by",
-				Aliases:     []string{"b"},
-				Destination: &adjustAmount,
-				Value:       5,
-				Usage:       "Amount to adjust workspace size percentage (positive or negative)",
+				Name:    flagBy,
+				Aliases: []string{"b"},
+				Value:   5,
+				Usage:   "Amount to adjust workspace size percentage (positive or negative)",
 			},
 		},
 		Action: func(ctx context.Context, cmd *ufcli.Command) error {
@@ -47,7 +46,7 @@ Examples:
 func runAdjust(ctx context.Context, cmd *ufcli.Command) error {
 	opts := cli.GetOptions(cmd)
 
-	amount := adjustAmount
+	amount := cmd.Int(flagBy)
 
 	// Create workspace service
 	stateSvc := config.NewWorkspaceService(opts.StatePath)
