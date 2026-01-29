@@ -11,6 +11,7 @@ A small CLI for adjusting Aerospace workspace sizing based on monitor gaps.
 **Always run formatter after modifying code.**
 **Always run e2e tests after modifying code.**
 **All tests must be e2e; do not write unit tests.**
+**Always determine if a new test should be added BEFORE fixing or changing feature logic**
 
 ## Commands
 
@@ -51,9 +52,10 @@ aerospace-utils/
 │   ├── root.go                 # Root command, global flags, imports workspace
 │   └── workspace/              # 'workspace' subcommand package
 │       ├── workspace.go        # Parent command
-│       ├── workspace_use.go    # 'workspace use' subcommand
-│       ├── workspace_adjust.go # 'workspace adjust' subcommand
-│       └── workspace_current.go # 'workspace current' subcommand
+│       ├── use.go              # 'workspace use' subcommand
+│       ├── adjust.go           # 'workspace adjust' subcommand
+│       ├── shift.go            # 'workspace shift' subcommand
+│       └── current.go          # 'workspace current' subcommand
 ├── internal/
 │   ├── aerospace/
 │   │   └── aerospace.go        # aerospace binary wrapper
@@ -66,11 +68,16 @@ aerospace-utils/
 │   │   ├── display.go          # Display info types
 │   │   ├── display_darwin.go   # macOS CGO implementation
 │   │   ├── display_linux.go    # Linux xrandr implementation
+│   │   ├── display_linux_test.go # Linux display tests
 │   │   └── display_other.go    # Stub for other platforms
 │   ├── gaps/
-│   │   └── gaps.go             # Gap calculations, validation
+│   │   ├── gaps.go             # Gap calculations, validation
+│   │   └── gaps_test.go        # Gap calculation tests
 │   └── output/
 │       └── output.go           # Colored output helpers
+├── test/
+│   └── testscript/
+│       └── testscript_test.go  # E2E testscript tests
 ├── go.mod
 ├── go.sum
 └── flake.nix
