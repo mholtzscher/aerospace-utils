@@ -19,14 +19,14 @@ func newCurrentCommand() *ufcli.Command {
 Shows:
 - Config file path and gap values
 - State file path and per-monitor percentages`,
-		Action: func(_ context.Context, _ *ufcli.Command) error {
-			return runCurrent()
+		Action: func(ctx context.Context, cmd *ufcli.Command) error {
+			return runCurrent(ctx, cmd)
 		},
 	}
 }
 
-func runCurrent() error {
-	opts := cli.GetOptions()
+func runCurrent(ctx context.Context, cmd *ufcli.Command) error {
+	opts := cli.GetOptions(cmd)
 	out := output.New(opts.NoColor)
 
 	configSvc := config.NewAerospaceService(opts.ConfigPath)

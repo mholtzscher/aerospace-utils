@@ -1,6 +1,8 @@
 // Package cli provides shared CLI types and utilities.
 package cli
 
+import ufcli "github.com/urfave/cli/v3"
+
 // GlobalOptions holds flags available to all subcommands.
 type GlobalOptions struct {
 	ConfigPath   string
@@ -13,14 +15,26 @@ type GlobalOptions struct {
 	NoColor      bool
 }
 
-var globalOpts GlobalOptions
+// GetOptions reads GlobalOptions from the root command's flags.
+// Call this in your command's Action to get the current values.
+func GetOptions(cmd *ufcli.Command) *GlobalOptions {
+	if cmd == nil {
+		return &GlobalOptions{}
+	}
 
-// GetOptions returns the current global options.
-func GetOptions() *GlobalOptions {
-	return &globalOpts
-}
+	root := cmd.Root()
+	if root == nil {
+		root = cmd
+	}
 
-// Options returns a pointer to the options struct for flag binding.
-func Options() *GlobalOptions {
-	return &globalOpts
+	return &GlobalOptions{
+		ConfigPath:   root.String("config-path"),
+		StatePath:    root.String("state-path"),
+		Monitor:      root.String("monitor"),
+		MonitorWidth: root.Int("monitor-width"),
+		NoReload:     root.Bool("no-reload"),
+		DryRun:       root.Bool("dry-run"),
+		Verbose:      root.Bool("verbose"),
+		NoColor:      root.Bool("no-color"),
+	}
 }

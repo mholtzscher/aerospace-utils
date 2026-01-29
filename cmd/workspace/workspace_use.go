@@ -40,13 +40,13 @@ Examples:
 			},
 		},
 		Action: func(ctx context.Context, cmd *ufcli.Command) error {
-			return runUse(cmd)
+			return runUse(ctx, cmd)
 		},
 	}
 }
 
-func runUse(cmd *ufcli.Command) error {
-	opts := cli.GetOptions()
+func runUse(ctx context.Context, cmd *ufcli.Command) error {
+	opts := cli.GetOptions(cmd)
 	out := output.New(opts.NoColor)
 
 	// Parse optional percentage argument
@@ -182,8 +182,8 @@ func resolveMonitorWidth(opts *cli.GlobalOptions) (int64, error) {
 }
 
 // RunWithPercent is called by adjust to apply a calculated percentage.
-func RunWithPercent(percentage int64) error {
-	opts := cli.GetOptions()
+func RunWithPercent(cmd *ufcli.Command, percentage int64) error {
+	opts := cli.GetOptions(cmd)
 	out := output.New(opts.NoColor)
 	return applyPercentage(opts, out, &percentage)
 }

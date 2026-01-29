@@ -38,14 +38,14 @@ Examples:
 				Usage:       "Amount to adjust workspace size percentage (positive or negative)",
 			},
 		},
-		Action: func(_ context.Context, _ *ufcli.Command) error {
-			return runAdjust()
+		Action: func(ctx context.Context, cmd *ufcli.Command) error {
+			return runAdjust(ctx, cmd)
 		},
 	}
 }
 
-func runAdjust() error {
-	opts := cli.GetOptions()
+func runAdjust(ctx context.Context, cmd *ufcli.Command) error {
+	opts := cli.GetOptions(cmd)
 
 	amount := adjustAmount
 
@@ -70,5 +70,5 @@ func runAdjust() error {
 	}
 
 	// Delegate to gaps use
-	return RunWithPercent(newPercent)
+	return RunWithPercent(cmd, newPercent)
 }
