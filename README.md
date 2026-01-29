@@ -10,6 +10,36 @@ A CLI tool to dynamically adjust [Aerospace](https://github.com/nikitabobko/Aero
 - **State Management**: Remembers your current settings and default preferences.
 - **Aerospace Integration**: Automatically updates `aerospace.toml` and reloads the configuration.
 
+## Why?
+
+[Aerospace](https://github.com/nikitabobko/AeroSpace) is a fantastic tiling window manager, but managing outer gaps to center your workspace or create a "focus mode" can be tedious. You often have to manually calculate pixel values for `aerospace.toml` based on your monitor resolution.
+
+`aerospace-utils` automates this by:
+
+1. Detecting your monitor width.
+2. Allowing you to think in **percentages** (e.g., "I want my workspace to be 60% of the screen").
+3. Handling the math and config updates for you.
+
+This is especially useful for **ultra-wide monitors** where you might want a centered, narrower workspace for focused work, or for quickly adjusting layouts without editing config files manually.
+
+## Table of Contents
+
+- [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Install via Homebrew (Recommended)](#install-via-homebrew-recommended)
+  - [Install via Nix Flake](#install-via-nix-flake)
+  - [Build from Source](#build-from-source)
+  - [Development Environment](#development-environment)
+- [Usage](#usage)
+  - [Set Workspace Size](#set-workspace-size)
+  - [Adjust Size](#adjust-size)
+  - [Shift Position](#shift-position)
+  - [View Configuration](#view-configuration)
+  - [Global Options](#global-options)
+- [How it Works](#how-it-works)
+  - [Shifting Example](#shifting-example)
+- [Configuration Files](#configuration-files)
+
 ## Installation
 
 ### Prerequisites
