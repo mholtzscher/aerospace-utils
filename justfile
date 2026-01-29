@@ -45,8 +45,16 @@ vet:
 lint:
     golangci-lint run
 
-# Run all checks (format, vet, lint, test)
-check: fmt vet lint test
+# Run all checks (format, vet, lint, test, tidy, gomod2nix)
+# Note: govulncheck temporarily removed
+# To run it manually: just govulncheck
+check: fmt vet lint test tidy gomod2nix
+
+# Update Go dependencies
+update-deps:
+    go get -u ./...
+    go mod tidy
+    gomod2nix > gomod2nix.toml
 
 # Tidy go modules
 tidy:
@@ -54,11 +62,15 @@ tidy:
 
 # Update gomod2nix.toml after dependency changes
 gomod2nix:
-    gomod2nix
+    gomod2nix > gomod2nix.toml
 
-# Build with nix
-nix-build:
-    nix build
+# Run govulncheck security scanner
+govulncheck:
+    govulncheck ./...
+
+# Update flake inputs (package versions)
+update:
+   nix flake update
 
 # Run with nix
 nix-run *ARGS:

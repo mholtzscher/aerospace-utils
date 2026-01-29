@@ -43,7 +43,7 @@ func GetOptions(cmd *ufcli.Command) *GlobalOptions {
 		ConfigPath:   root.String(FlagConfigPath),
 		StatePath:    root.String(FlagStatePath),
 		Monitor:      root.String(FlagMonitor),
-		MonitorWidth: root.Int(FlagMonitorWidth),
+		MonitorWidth: int64(root.Int(FlagMonitorWidth)),
 		NoReload:     root.Bool(FlagNoReload),
 		DryRun:       root.Bool(FlagDryRun),
 		Verbose:      root.Bool(FlagVerbose),

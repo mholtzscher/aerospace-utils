@@ -3,7 +3,9 @@
 exec aerospace-utils workspace use --no-reload --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color 60
 
 # Verify config updated
-grep 'monitor.main = 384' config.toml
+grep '[gaps.outer.left.monitor]' config.toml
+grep '[gaps.outer.right.monitor]' config.toml
+grep 'main = 384' config.toml
 
 # Verify state updated
 grep 'current = 60' state.toml

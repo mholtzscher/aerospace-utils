@@ -3,7 +3,9 @@
 exec aerospace-utils workspace adjust --no-reload --config-path config.toml --state-path state.toml --monitor-width 1920 --no-color --by=10
 
 # Verify gap values updated
-grep 'monitor.main = 384' config.toml
+grep '[gaps.outer.left.monitor]' config.toml
+grep '[gaps.outer.right.monitor]' config.toml
+grep 'main = 384' config.toml
 
 # Verify other config preserved
 grep 'start-at-login = true' config.toml

@@ -111,7 +111,7 @@ func runShift(cmd *ufcli.Command) error {
 	}
 
 	// Update state with shift
-	if err := stateSvc.SetShift(opts.Monitor, shift); err != nil {
+	if err := stateSvc.SetShift(opts.Monitor, int64(shift)); err != nil {
 		return fmt.Errorf("write state: %w", err)
 	}
 

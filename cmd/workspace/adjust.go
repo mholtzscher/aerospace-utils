@@ -61,7 +61,7 @@ func runAdjust(cmd *ufcli.Command) error {
 	}
 
 	// Calculate new percentage
-	newPercent := *monState.Current + amount
+	newPercent := *monState.Current + int64(amount)
 
 	// Validate new percentage
 	if err := gaps.ValidatePercentage(newPercent); err != nil {

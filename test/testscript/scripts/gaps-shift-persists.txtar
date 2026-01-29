@@ -12,8 +12,10 @@ grep 'shift = 5' state.toml
 
 # Now verify config has asymmetric gaps
 # For 1920px at 60% with 5% shift: left = 25% = 480px, right = 15% = 288px
-grep 'monitor.main = 480' config.toml  # left gap for 60% with 5% shift
-grep 'monitor.main = 288' config.toml  # right gap for 60% with 5% shift
+grep '[gaps.outer.left.monitor]' config.toml
+grep '[gaps.outer.right.monitor]' config.toml
+grep 'main = 480' config.toml  # left gap for 60% with 5% shift
+grep 'main = 288' config.toml  # right gap for 60% with 5% shift
 
 -- config.toml --
 start-at-login = true

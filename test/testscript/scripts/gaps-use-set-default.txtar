@@ -5,7 +5,9 @@ stdout '75%'
 
 grep 'current = 75' state.toml
 grep 'default = 75' state.toml
-grep 'monitor.main = 240' config.toml
+grep '[gaps.outer.left.monitor]' config.toml
+grep '[gaps.outer.right.monitor]' config.toml
+grep 'main = 240' config.toml
 
 -- config.toml --
 start-at-login = true

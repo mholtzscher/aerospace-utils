@@ -2,15 +2,14 @@
 package config
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
 
-	"github.com/pelletier/go-toml/v2"
+	"github.com/BurntSushi/toml"
 )
 
 var (
@@ -55,15 +54,14 @@ func (as *AerospaceService) loadConfig() error {
 		return fmt.Errorf("%w: %w", ErrConfigRead, err)
 	}
 
-	var parsed aerospaceConfigData
-	if err := toml.Unmarshal(content, &parsed); err != nil {
+	var parsed map[string]any
+	if _, err := toml.Decode(string(content), &parsed); err != nil {
 		return fmt.Errorf("%w: %w", ErrConfigParse, err)
 	}
 
 	as.config = &aerospaceConfig{
-		path:    as.configPath,
-		content: string(content),
-		parsed:  parsed,
+		path:   as.configPath,
+		parsed: parsed,
 	}
 
 	return nil
@@ -81,21 +79,46 @@ func (as *AerospaceService) Exists() (bool, error) {
 	return false, fmt.Errorf("stat config: %w", err)
 }
 
+// MonitorGap represents a gap value for a specific monitor.
+type MonitorGap struct {
+	Name  string
+	Value int64
+}
+
+// Summary contains extracted gap information from the config.
+type Summary struct {
+	InnerHorizontal *int64
+	InnerVertical   *int64
+	OuterTop        *int64
+	OuterBottom     *int64
+	LeftGaps        []MonitorGap
+	RightGaps       []MonitorGap
+}
+
 // Summary returns a summary of the gap configuration.
 func (as *AerospaceService) Summary() (Summary, error) {
 	if err := as.loadConfig(); err != nil {
 		return Summary{}, err
 	}
 
-	s := Summary{
-		InnerHorizontal: as.config.parsed.Gaps.Inner.Horizontal,
-		InnerVertical:   as.config.parsed.Gaps.Inner.Vertical,
+	s := Summary{}
+
+	gaps, ok := as.config.parsed["gaps"].(map[string]any)
+	if !ok {
+		return s, nil
 	}
 
-	s.OuterTop = extractScalarGap(as.config.parsed.Gaps.Outer.Top)
-	s.OuterBottom = extractScalarGap(as.config.parsed.Gaps.Outer.Bottom)
-	s.LeftGaps = extractMonitorGaps(as.config.parsed.Gaps.Outer.Left)
-	s.RightGaps = extractMonitorGaps(as.config.parsed.Gaps.Outer.Right)
+	if inner, ok := gaps["inner"].(map[string]any); ok {
+		s.InnerHorizontal = extractInt64(inner["horizontal"])
+		s.InnerVertical = extractInt64(inner["vertical"])
+	}
+
+	if outer, ok := gaps["outer"].(map[string]any); ok {
+		s.OuterTop = extractScalarGap(outer["top"])
+		s.OuterBottom = extractScalarGap(outer["bottom"])
+		s.LeftGaps = extractMonitorGaps(outer["left"])
+		s.RightGaps = extractMonitorGaps(outer["right"])
+	}
 
 	return s, nil
 }
@@ -127,46 +150,14 @@ func (as *AerospaceService) MonitorNames() ([]string, error) {
 }
 
 // SetMonitorGaps updates the gap value for a specific monitor.
-// Uses regex-based replacement to preserve file formatting.
 func (as *AerospaceService) SetMonitorGaps(monitorName string, gapSize int64) error {
 	if err := as.loadConfig(); err != nil {
 		return err
 	}
 
-	// Build regex patterns for the monitor name
-	// Handle both quoted and unquoted monitor names
-	var patterns []*regexp.Regexp
-
-	// Pattern for: monitor.main = 123 or monitor.'name' = 123 or monitor."name" = 123
-	if monitorName == "main" || isSimpleKey(monitorName) {
-		// Unquoted key: monitor.main = 123
-		patterns = append(patterns, regexp.MustCompile(
-			fmt.Sprintf(`(monitor\.%s\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
-		))
-	}
-
-	// Single-quoted key: monitor.'name' = 123
-	patterns = append(patterns, regexp.MustCompile(
-		fmt.Sprintf(`(monitor\.'%s'\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
-	))
-
-	// Double-quoted key: monitor."name" = 123
-	patterns = append(patterns, regexp.MustCompile(
-		fmt.Sprintf(`(monitor\."%s"\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
-	))
-
-	// Try each pattern
-	newValue := strconv.FormatInt(gapSize, 10)
-	replaced := false
-
-	for _, pattern := range patterns {
-		if pattern.MatchString(as.config.content) {
-			as.config.content = pattern.ReplaceAllString(as.config.content, "${1}"+newValue)
-			replaced = true
-		}
-	}
-
-	if !replaced {
+	leftUpdated := updateMonitorGapInConfig(as.config.parsed, "left", monitorName, gapSize)
+	rightUpdated := updateMonitorGapInConfig(as.config.parsed, "right", monitorName, gapSize)
+	if !leftUpdated && !rightUpdated {
 		return fmt.Errorf("%w: %s", ErrMonitorNotFound, monitorName)
 	}
 
@@ -174,74 +165,56 @@ func (as *AerospaceService) SetMonitorGaps(monitorName string, gapSize int64) er
 }
 
 // SetMonitorAsymmetricGaps updates both left and right gap values for a monitor.
-// Uses regex-based replacement to preserve file formatting.
 func (as *AerospaceService) SetMonitorAsymmetricGaps(monitorName string, leftGap, rightGap int64) error {
 	if err := as.loadConfig(); err != nil {
 		return err
 	}
 
-	content, leftReplaced, err := replaceMonitorGapInSide(as.config.content, "left", monitorName, leftGap)
-	if err != nil {
-		return err
-	}
-	content, rightReplaced, err := replaceMonitorGapInSide(content, "right", monitorName, rightGap)
-	if err != nil {
-		return err
-	}
-
-	if !leftReplaced || !rightReplaced {
+	leftUpdated := updateMonitorGapInConfig(as.config.parsed, "left", monitorName, leftGap)
+	rightUpdated := updateMonitorGapInConfig(as.config.parsed, "right", monitorName, rightGap)
+	if !leftUpdated || !rightUpdated {
 		return fmt.Errorf("%w: %s", ErrMonitorNotFound, monitorName)
 	}
 
-	as.config.content = content
 	return nil
 }
 
-func replaceMonitorGapInSide(content, side, monitorName string, gapSize int64) (string, bool, error) {
-	arrayRe := regexp.MustCompile(fmt.Sprintf(`(?s)(%s\s*=\s*\[)(.*?)(\])`, regexp.QuoteMeta(side)))
-	idx := arrayRe.FindStringSubmatchIndex(content)
-	if idx == nil {
-		return content, false, nil
+func updateMonitorGapInConfig(config map[string]any, side, monitorName string, gapSize int64) bool {
+	gaps, ok := config["gaps"].(map[string]any)
+	if !ok {
+		return false
+	}
+	outer, ok := gaps["outer"].(map[string]any)
+	if !ok {
+		return false
 	}
 
-	body := content[idx[4]:idx[5]]
-	newBody, replaced := replaceMonitorGapInBody(body, monitorName, gapSize)
-	if !replaced {
-		return content, false, nil
+	sideArray, ok := asAnySlice(outer[side])
+	if !ok {
+		return false
 	}
 
-	updated := content[:idx[4]] + newBody + content[idx[5]:]
-	return updated, true, nil
-}
-
-func replaceMonitorGapInBody(body, monitorName string, gapSize int64) (string, bool) {
-	var patterns []*regexp.Regexp
-
-	if monitorName == "main" || isSimpleKey(monitorName) {
-		patterns = append(patterns, regexp.MustCompile(
-			fmt.Sprintf(`(monitor\.%s\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
-		))
-	}
-
-	patterns = append(patterns, regexp.MustCompile(
-		fmt.Sprintf(`(monitor\.'%s'\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
-	))
-
-	patterns = append(patterns, regexp.MustCompile(
-		fmt.Sprintf(`(monitor\."%s"\s*=\s*)(\d+)`, regexp.QuoteMeta(monitorName)),
-	))
-
-	newValue := strconv.FormatInt(gapSize, 10)
-	replaced := false
-
-	for _, p := range patterns {
-		if p.MatchString(body) {
-			body = p.ReplaceAllString(body, "${1}"+newValue)
-			replaced = true
+	updated := false
+	for _, item := range sideArray {
+		m, ok := item.(map[string]any)
+		if !ok {
+			continue
 		}
+
+		monitor, ok := m["monitor"].(map[string]any)
+		if !ok {
+			continue
+		}
+
+		if _, exists := monitor[monitorName]; !exists {
+			continue
+		}
+
+		monitor[monitorName] = gapSize
+		updated = true
 	}
 
-	return body, replaced
+	return updated
 }
 
 // Write writes the config back to disk atomically.
@@ -250,7 +223,12 @@ func (as *AerospaceService) Write() error {
 		return errors.New("no config loaded")
 	}
 
-	if err := WriteAtomic(as.config.path, as.config.content); err != nil {
+	var buf bytes.Buffer
+	if err := toml.NewEncoder(&buf).Encode(as.config.parsed); err != nil {
+		return fmt.Errorf("encode config: %w", err)
+	}
+
+	if err := WriteAtomic(as.config.path, buf.String()); err != nil {
 		return fmt.Errorf("%w: %w", ErrConfigWrite, err)
 	}
 	return nil
@@ -258,41 +236,23 @@ func (as *AerospaceService) Write() error {
 
 // aerospaceConfig holds the loaded config state.
 type aerospaceConfig struct {
-	path    string
-	content string // Raw file content for format-preserving edits
-	parsed  aerospaceConfigData
+	path   string
+	parsed map[string]any
 }
 
-// aerospaceConfigData is the parsed structure of aerospace.toml.
-type aerospaceConfigData struct {
-	Gaps struct {
-		Inner struct {
-			Horizontal *int64 `toml:"horizontal"`
-			Vertical   *int64 `toml:"vertical"`
-		} `toml:"inner"`
-		Outer struct {
-			Top    any `toml:"top"`
-			Bottom any `toml:"bottom"`
-			Left   any `toml:"left"`
-			Right  any `toml:"right"`
-		} `toml:"outer"`
-	} `toml:"gaps"`
-}
-
-// MonitorGap represents a gap value for a specific monitor.
-type MonitorGap struct {
-	Name  string
-	Value int64
-}
-
-// Summary contains extracted gap information from the config.
-type Summary struct {
-	InnerHorizontal *int64
-	InnerVertical   *int64
-	OuterTop        *int64
-	OuterBottom     *int64
-	LeftGaps        []MonitorGap
-	RightGaps       []MonitorGap
+// extractInt64 extracts an int64 from an interface{} value.
+func extractInt64(v any) *int64 {
+	if v == nil {
+		return nil
+	}
+	switch val := v.(type) {
+	case int64:
+		return &val
+	case float64:
+		i := int64(val)
+		return &i
+	}
+	return nil
 }
 
 // extractScalarGap extracts a scalar gap value from various possible types.
@@ -304,7 +264,7 @@ func extractScalarGap(v any) *int64 {
 		i := int64(val)
 		return &i
 	case []any:
-		// Array form - look for scalar default at the end
+		// Array form - look for scalar default at the end.
 		for i := len(val) - 1; i >= 0; i-- {
 			if scalar := extractScalarGap(val[i]); scalar != nil {
 				return scalar
@@ -316,7 +276,7 @@ func extractScalarGap(v any) *int64 {
 
 // extractMonitorGaps extracts per-monitor gap values from an array.
 func extractMonitorGaps(v any) []MonitorGap {
-	arr, ok := v.([]any)
+	arr, ok := asAnySlice(v)
 	if !ok {
 		return nil
 	}
@@ -350,18 +310,19 @@ func extractMonitorGaps(v any) []MonitorGap {
 	return gaps
 }
 
-// isSimpleKey returns true if the key doesn't need quoting in TOML.
-func isSimpleKey(s string) bool {
-	if s == "" {
-		return false
-	}
-	for _, r := range s {
-		if (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') &&
-			(r < '0' || r > '9') && r != '_' && r != '-' {
-			return false
+func asAnySlice(v any) ([]any, bool) {
+	switch vv := v.(type) {
+	case []any:
+		return vv, true
+	case []map[string]any:
+		out := make([]any, 0, len(vv))
+		for i := range vv {
+			out = append(out, vv[i])
 		}
+		return out, true
+	default:
+		return nil, false
 	}
-	return true
 }
 
 // DefaultConfigPath returns the default path to aerospace.toml.
@@ -380,14 +341,14 @@ func WriteAtomic(path, content string) error {
 		return fmt.Errorf("create directory: %w", err)
 	}
 
-	// Create temp file in same directory for atomic rename
+	// Create temp file in same directory for atomic rename.
 	tmp, err := os.CreateTemp(dir, ".tmp-*")
 	if err != nil {
 		return fmt.Errorf("create temp file: %w", err)
 	}
 	tmpPath := tmp.Name()
 
-	// Clean up temp file on error
+	// Clean up temp file on error.
 	success := false
 	defer func() {
 		if !success {
@@ -408,7 +369,7 @@ func WriteAtomic(path, content string) error {
 		return fmt.Errorf("close temp file: %w", err)
 	}
 
-	// Atomic rename
+	// Atomic rename.
 	if err := os.Rename(tmpPath, path); err != nil {
 		return fmt.Errorf("rename temp file: %w", err)
 	}

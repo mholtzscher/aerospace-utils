@@ -13,7 +13,9 @@ env PATH=$WORK/bin:$PATH
 
 exec aerospace-utils workspace use --no-reload --config-path config.toml --state-path state.toml --no-color 60
 stdout 'Set main to 60%'
-grep 'monitor.main = 200' config.toml
+grep '[gaps.outer.left.monitor]' config.toml
+grep '[gaps.outer.right.monitor]' config.toml
+grep 'main = 200' config.toml
 grep 'current = 60' state.toml
 
 -- config.toml --

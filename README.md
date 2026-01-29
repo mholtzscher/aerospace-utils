@@ -116,6 +116,8 @@ The tool detects your main monitor's width and calculates the outer gaps require
 
 It updates the `[gaps.outer.left]` and `[gaps.outer.right]` settings for `monitor.main` in your `aerospace.toml`.
 
+Note: when writing, the tool re-encodes `aerospace.toml` (comments/formatting may change).
+
 ### Shifting Example
 
 You can keep the same workspace width but shift it left/right by redistributing the side gaps.
