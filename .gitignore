@@ -1,7 +1,31 @@
-/target
+# Binaries
+/aerospace-utils
+result
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# Nix
 .direnv/
 
-result
-.grepai/
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 
-aerospace-utils
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+/target
+.grepai/

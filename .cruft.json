@@ -1,0 +1,38 @@
+{
+  "template": "https://github.com/mholtzscher/templates.git",
+  "commit": "290576a1fd9413b62b5869599c74453265623b16",
+  "context": {
+    "cookiecutter": {
+      "project_name": "aerospace-utils",
+      "project_slug": "aerospace-utils",
+      "project_description": "CLI for managing Aerospace workspace gaps",
+      "github_owner": "mholtzscher",
+      "github_repo": "aerospace-utils",
+      "module_path": "github.com/mholtzscher/aerospace-utils",
+      "author_name": "Michael Holtzscher",
+      "author_email": "michael@holtzscher.com",
+      "license": "MIT",
+      "use_cgo": "yes",
+      "use_homebrew": "yes",
+      "go_version": "1.25"
+    }
+  },
+  "directory": "go-nix-cli",
+  "skip": [
+    ".github/.release-please-manifest.json",
+    ".github/workflows/ci.yml",
+    "CHANGELOG.md",
+    "README.md",
+    ".goreleaser.yaml",
+    "cmd",
+    "internal",
+    "test",
+    "main.go",
+    "go.mod",
+    "go.sum",
+    "gomod2nix.toml",
+    "flake.lock",
+    "extras",
+    "opencode.json"
+  ]
+}

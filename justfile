@@ -46,8 +46,6 @@ lint:
     golangci-lint run
 
 # Run all checks (format, vet, lint, test, tidy, gomod2nix)
-# Note: govulncheck temporarily removed
-# To run it manually: just govulncheck
 check: fmt vet lint test tidy gomod2nix
 
 # Update Go dependencies
@@ -68,9 +66,17 @@ gomod2nix:
 govulncheck:
     govulncheck ./...
 
-# Update flake inputs (package versions)
-update:
-   nix flake update
+# Validate template consistency
+cruft-check:
+    cruft check
+
+# Show template differences
+cruft-diff:
+    cruft diff
+
+# Update to latest template
+cruft-update:
+    cruft update
 
 # Run with nix
 nix-run *ARGS:

@@ -1,5 +1,5 @@
 {
-  description = "CLI for managing Aerospace workspace gaps";
+  description = "aerospace-utils - CLI for managing Aerospace workspace gaps";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -26,9 +26,15 @@
           overlays = [ gomod2nix.overlays.default ];
         };
 
-        version = "0.3.3"; # x-release-please-version
+        releasePleaseManifest = builtins.fromJSON (
+          builtins.readFile ./.github/.release-please-manifest.json
+        );
+        version = releasePleaseManifest.".";
 
-        # macOS-specific build inputs for CoreGraphics CGO bindings
+        # Add platform-specific build inputs here (e.g., CGO deps)
+        buildInputs = [ ];
+
+        # macOS-specific build inputs for CGO
         darwinBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
           pkgs.apple-sdk_15
         ];
@@ -41,9 +47,9 @@
           modules = ./gomod2nix.toml;
           go = pkgs.go_1_25;
 
-          buildInputs = darwinBuildInputs;
+          buildInputs = buildInputs ++ darwinBuildInputs;
 
-          # CGO required for CoreGraphics display detection on macOS
+          # Set CGO_ENABLED=1 if you need CGO
           CGO_ENABLED = 1;
 
           ldflags = [
@@ -57,7 +63,7 @@
             homepage = "https://github.com/mholtzscher/aerospace-utils";
             license = licenses.mit;
             mainProgram = "aerospace-utils";
-            platforms = platforms.darwin ++ platforms.linux;
+            platforms = platforms.all;
           };
         };
 
@@ -71,9 +77,12 @@
             pkgs.gotools
             pkgs.gomod2nix
             pkgs.just
+            pkgs.cruft
           ]
+          ++ buildInputs
           ++ darwinBuildInputs;
 
+          # Set CGO_ENABLED="1" if you need CGO
           CGO_ENABLED = "1";
         };
 
@@ -83,6 +92,7 @@
             pkgs.golangci-lint
             pkgs.just
           ]
+          ++ buildInputs
           ++ darwinBuildInputs;
 
           CGO_ENABLED = "1";
