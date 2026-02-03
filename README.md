@@ -48,6 +48,10 @@ This is especially useful for **ultra-wide monitors** where you might want a cen
 - [Aerospace](https://github.com/nikitabobko/AeroSpace) installed and in your `PATH`.
 - Go 1.22+ (if building from source).
 
+### Raycast Integration
+
+For quick workspace adjustments via Raycast, check out the [Raycast Scripts](./extras/README.md) in the `extras/` folder.
+
 ### Install via Homebrew (Recommended)
 
 ```bash
