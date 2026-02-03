@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/mholtzscher/templates.git",
-  "commit": "290576a1fd9413b62b5869599c74453265623b16",
+  "commit": "3cdb904131c115adaf8564f0bbeabe5a87aa9740",
   "context": {
     "cookiecutter": {
       "project_name": "aerospace-utils",
@@ -14,7 +14,12 @@
       "license": "MIT",
       "use_cgo": "yes",
       "use_homebrew": "yes",
-      "go_version": "1.25"
+      "go_version": "1.25",
+      "_template": "https://github.com/mholtzscher/templates.git",
+      "_commit": "3cdb904131c115adaf8564f0bbeabe5a87aa9740",
+      "_copy_without_render": [
+        "test/testscript/scripts/*.txtar"
+      ]
     }
   },
   "directory": "go-nix-cli",
@@ -34,5 +39,6 @@
     "flake.lock",
     "extras",
     "opencode.json"
-  ]
+  ],
+  "checkout": null
 }
