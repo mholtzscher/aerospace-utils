@@ -162,4 +162,3 @@ Use goimports or let `go fmt` handle ordering.
 
 - Keep changes minimal and focused.
 - Avoid mass reformatting unless necessary.
-- Run `go mod tidy` after dependency changes.

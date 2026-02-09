@@ -1,0 +1,12 @@
+diff a/AGENTS.md b/AGENTS.md	(rejected hunks)
+@@ -7,9 +7,7 @@ CLI for managing Aerospace workspace gaps
+ ## Rules
+ 
+ **Never commit code unless explicitly prompted by the user.**
+-**Always run linting after modifying code.**
+-**Always run formatter after modifying code.**
+-**Always run tests after modifying code.**
++**Always run `just check` after making changes.**
+ 
+ ## Commands
+ 
