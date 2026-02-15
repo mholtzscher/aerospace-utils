@@ -4,12 +4,15 @@ package cmd
 import (
 	"context"
 
+	ufcli "github.com/urfave/cli/v3"
+
 	"github.com/mholtzscher/aerospace-utils/cmd/workspace"
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
-	ufcli "github.com/urfave/cli/v3"
 )
 
 // Version is set at build time.
+//
+//nolint:gochecknoglobals // Version is set at build time via ldflags
 var Version = "0.3.3" // x-release-please-version
 
 // Run is the entry point for the CLI.

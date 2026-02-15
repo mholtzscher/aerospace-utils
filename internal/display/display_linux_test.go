@@ -1,5 +1,6 @@
 //go:build linux
 
+//nolint:testpackage // Internal tests need access to test functions
 package display
 
 import (

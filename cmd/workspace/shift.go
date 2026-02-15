@@ -5,12 +5,13 @@ import (
 	"errors"
 	"fmt"
 
+	ufcli "github.com/urfave/cli/v3"
+
 	"github.com/mholtzscher/aerospace-utils/internal/aerospace"
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
 	"github.com/mholtzscher/aerospace-utils/internal/config"
 	"github.com/mholtzscher/aerospace-utils/internal/gaps"
 	"github.com/mholtzscher/aerospace-utils/internal/output"
-	ufcli "github.com/urfave/cli/v3"
 )
 
 const flagShiftBy = "by"
@@ -41,12 +42,13 @@ Examples:
 				Usage:   "Amount to shift workspace (positive = right, negative = left)",
 			},
 		},
-		Action: func(ctx context.Context, cmd *ufcli.Command) error {
+		Action: func(_ context.Context, cmd *ufcli.Command) error {
 			return runShift(cmd)
 		},
 	}
 }
 
+//nolint:funlen // Complex command with multiple steps
 func runShift(cmd *ufcli.Command) error {
 	opts := cli.GetOptions(cmd)
 	out := output.New(opts.NoColor)
@@ -67,8 +69,8 @@ func runShift(cmd *ufcli.Command) error {
 	}
 
 	percentage := *monState.Current
-	if err := gaps.ValidatePercentage(percentage); err != nil {
-		return err
+	if validationErr := gaps.ValidatePercentage(percentage); validationErr != nil {
+		return validationErr
 	}
 
 	// Get current shift (0 if not set)
@@ -94,14 +96,14 @@ func runShift(cmd *ufcli.Command) error {
 	}
 
 	// Validate shift is within bounds
-	if err := gaps.ValidateShift(monitorWidth, percentage, newShift); err != nil {
-		return fmt.Errorf("invalid shift: %w", err)
+	if validationErr := gaps.ValidateShift(monitorWidth, percentage, newShift); validationErr != nil {
+		return fmt.Errorf("invalid shift: %w", validationErr)
 	}
 
 	shift := newShift
 
 	// Calculate shifted gaps
-	shiftedGaps := gaps.CalculateShiftedGaps(monitorWidth, percentage, int64(shift))
+	shiftedGaps := gaps.CalculateShiftedGaps(monitorWidth, percentage, shift)
 
 	if opts.DryRun {
 		out.DryRun()
@@ -118,43 +120,51 @@ func runShift(cmd *ufcli.Command) error {
 		return fmt.Errorf("check config: %w", err)
 	}
 	if !exists {
-		return fmt.Errorf("config file not found: %s\nCreate it manually or run 'aerospace' to generate a default config", configSvc.ConfigPath())
+		return fmt.Errorf(
+			"config file not found: %s\nCreate it manually or run 'aerospace' to generate a default config",
+			configSvc.ConfigPath(),
+		)
 	}
 
 	// Update config with asymmetric gaps
-	if err := configSvc.SetMonitorAsymmetricGaps(opts.Monitor, shiftedGaps.LeftGapPixels, shiftedGaps.RightGapPixels); err != nil {
-		return fmt.Errorf("update config: %w", err)
+	if configErr := configSvc.SetMonitorAsymmetricGaps(
+		opts.Monitor,
+		shiftedGaps.LeftGapPixels,
+		shiftedGaps.RightGapPixels,
+	); configErr != nil {
+		return fmt.Errorf("update config: %w", configErr)
 	}
 
-	if err := configSvc.Write(); err != nil {
-		return fmt.Errorf("write config: %w", err)
+	if writeErr := configSvc.Write(); writeErr != nil {
+		return fmt.Errorf("write config: %w", writeErr)
 	}
 
 	// Update state with shift
-	if err := stateSvc.SetShift(opts.Monitor, int64(shift)); err != nil {
-		return fmt.Errorf("write state: %w", err)
+	if shiftErr := stateSvc.SetShift(opts.Monitor, shift); shiftErr != nil {
+		return fmt.Errorf("write state: %w", shiftErr)
 	}
 
 	// Reload aerospace config
 	reloadStatus := ""
 	if !opts.NoReload {
-		bin, err := aerospace.FindBinary()
-		if err != nil {
+		bin, findErr := aerospace.FindBinary()
+		if findErr != nil {
 			reloadStatus = " (aerospace not found)"
-		} else if err := bin.ReloadConfig(); err != nil {
-			reloadStatus = fmt.Sprintf(" (reload failed: %v)", err)
+		} else if reloadErr := bin.ReloadConfig(); reloadErr != nil {
+			reloadStatus = fmt.Sprintf(" (reload failed: %v)", reloadErr)
 		}
 	} else {
 		reloadStatus = " (reload skipped)"
 	}
 
 	// Build success message
-	shiftMsg := ""
-	if shift == 0 {
+	var shiftMsg string
+	switch {
+	case shift == 0:
 		shiftMsg = " (centered)"
-	} else if shift > 0 {
+	case shift > 0:
 		shiftMsg = fmt.Sprintf(" (shifted %d%% right)", shift)
-	} else {
+	default:
 		shiftMsg = fmt.Sprintf(" (shifted %d%% left)", -shift)
 	}
 

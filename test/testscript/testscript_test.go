@@ -1,4 +1,6 @@
 // Package testscript exercises the CLI using go-internal/testscript.
+//
+//nolint:testpackage // Test package uses internal functions
 package testscript
 
 import (
@@ -8,8 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mholtzscher/aerospace-utils/cmd"
 	"github.com/rogpeppe/go-internal/testscript"
+
+	"github.com/mholtzscher/aerospace-utils/cmd"
 )
 
 func runCmd() {

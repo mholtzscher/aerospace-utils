@@ -7,9 +7,7 @@ A small CLI for adjusting Aerospace workspace sizing based on monitor gaps.
 ## Rules
 
 **Never commit code unless explicitly prompted by the user.**
-**Always run linting after modifying code.**
-**Always run formatter after modifying code.**
-**Always run e2e tests after modifying code.**
+**Always run `just check` after making changes.**
 **All tests must be e2e; do not write unit tests.**
 **Always determine if a new test should be added BEFORE fixing or changing feature logic**
 
@@ -162,4 +160,3 @@ Use goimports or let `go fmt` handle ordering.
 
 - Keep changes minimal and focused.
 - Avoid mass reformatting unless necessary.
-- Run `go mod tidy` after dependency changes.

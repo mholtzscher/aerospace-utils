@@ -6,6 +6,11 @@ import (
 	"math"
 )
 
+const (
+	percentageScale = 100
+	halfDivisor     = 2
+)
+
 // ErrInvalidPercentage indicates a percentage outside the valid range.
 var ErrInvalidPercentage = errors.New("percentage must be between 1 and 100")
 
@@ -21,8 +26,8 @@ func ValidatePercentage(percentage int64) error {
 // Formula: gap = monitor_width * ((100 - percentage) / 100) / 2
 // This gives the gap on each side (left and right) to achieve the desired workspace percentage.
 func CalculateGapSize(monitorWidth, percentage int64) int64 {
-	fraction := float64(100-percentage) / 100.0
-	gap := float64(monitorWidth) * fraction / 2.0
+	fraction := float64(percentageScale-percentage) / float64(percentageScale)
+	gap := float64(monitorWidth) * fraction / halfDivisor
 	return int64(math.Round(gap))
 }
 
@@ -42,7 +47,7 @@ type ShiftedGaps struct {
 // centered per-side gap (in pixels), otherwise one side would go negative.
 func ValidateShift(monitorWidth, percentage, shiftPercent int64) error {
 	baseGapPixels := CalculateGapSize(monitorWidth, percentage)
-	shiftPixels := int64(math.Round(float64(monitorWidth) * math.Abs(float64(shiftPercent)) / 100.0))
+	shiftPixels := int64(math.Round(float64(monitorWidth) * math.Abs(float64(shiftPercent)) / float64(percentageScale)))
 	if shiftPixels > baseGapPixels {
 		return ErrInvalidShift
 	}
@@ -58,13 +63,13 @@ func ValidateShift(monitorWidth, percentage, shiftPercent int64) error {
 // for a given percentage.
 func CalculateShiftedGaps(monitorWidth, percentage, shiftPercent int64) ShiftedGaps {
 	baseGapPixels := CalculateGapSize(monitorWidth, percentage)
-	shiftPixels := int64(math.Round(float64(monitorWidth) * float64(shiftPercent) / 100.0))
+	shiftPixels := int64(math.Round(float64(monitorWidth) * float64(shiftPercent) / float64(percentageScale)))
 
 	leftGapPixels := baseGapPixels + shiftPixels
 	rightGapPixels := baseGapPixels - shiftPixels
 
-	leftPercent := int64(math.Round(float64(leftGapPixels) * 100.0 / float64(monitorWidth)))
-	rightPercent := int64(math.Round(float64(rightGapPixels) * 100.0 / float64(monitorWidth)))
+	leftPercent := int64(math.Round(float64(leftGapPixels) * float64(percentageScale) / float64(monitorWidth)))
+	rightPercent := int64(math.Round(float64(rightGapPixels) * float64(percentageScale) / float64(monitorWidth)))
 
 	return ShiftedGaps{
 		LeftGapPercent:  leftPercent,

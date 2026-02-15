@@ -89,7 +89,7 @@ func (ws *WorkspaceService) loadState() error {
 	}
 
 	raw := map[string]any{}
-	if err := toml.Unmarshal(data, &raw); err != nil {
+	if unmarshalErr := toml.Unmarshal(data, &raw); unmarshalErr != nil {
 		return ErrStateFormat
 	}
 	if len(raw) == 0 {
@@ -98,7 +98,7 @@ func (ws *WorkspaceService) loadState() error {
 	}
 
 	var file stateFile
-	if err := toml.Unmarshal(data, &file); err != nil {
+	if unmarshalErr := toml.Unmarshal(data, &file); unmarshalErr != nil {
 		return ErrStateFormat
 	}
 	if _, ok := raw["monitors"]; ok {
@@ -149,7 +149,7 @@ func (ws *WorkspaceService) ResolvePercentage(monitor string, explicit *int64) (
 
 	mon := ws.state.monitors[monitor]
 	if mon == nil {
-		return nil, nil
+		return nil, ErrMonitorNotFound
 	}
 
 	if mon.Current != nil {
@@ -210,13 +210,13 @@ func (ws *WorkspaceService) GetShift(monitor string) (int64, error) {
 func (ws *WorkspaceService) write() error {
 	file := stateFile{Monitors: ws.state.monitors}
 
-	data, err := toml.Marshal(file)
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrStateMarshal, err)
+	data, marshalErr := toml.Marshal(file)
+	if marshalErr != nil {
+		return fmt.Errorf("%w: %w", ErrStateMarshal, marshalErr)
 	}
 
-	if err := WriteAtomic(ws.state.path, string(data)); err != nil {
-		return fmt.Errorf("%w: %w", ErrStateWrite, err)
+	if writeErr := WriteAtomic(ws.state.path, string(data)); writeErr != nil {
+		return fmt.Errorf("%w: %w", ErrStateWrite, writeErr)
 	}
 	return nil
 }

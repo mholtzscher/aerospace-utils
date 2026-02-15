@@ -44,6 +44,7 @@ func (b *Binary) Path() string {
 
 // ReloadConfig runs `aerospace reload-config`.
 func (b *Binary) ReloadConfig() error {
+	//nolint:gosec,noctx // We control the path and arguments, no context needed for this short operation
 	cmd := exec.Command(b.path, "reload-config")
 
 	// Capture output for error reporting

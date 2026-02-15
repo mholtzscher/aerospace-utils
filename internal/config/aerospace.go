@@ -55,8 +55,8 @@ func (as *AerospaceService) loadConfig() error {
 	}
 
 	var parsed map[string]any
-	if _, err := toml.Decode(string(content), &parsed); err != nil {
-		return fmt.Errorf("%w: %w", ErrConfigParse, err)
+	if _, decodeErr := toml.Decode(string(content), &parsed); decodeErr != nil {
+		return fmt.Errorf("%w: %w", ErrConfigParse, decodeErr)
 	}
 
 	as.config = &aerospaceConfig{
@@ -108,12 +108,12 @@ func (as *AerospaceService) Summary() (Summary, error) {
 		return s, nil
 	}
 
-	if inner, ok := gaps["inner"].(map[string]any); ok {
+	if inner, innerOk := gaps["inner"].(map[string]any); innerOk {
 		s.InnerHorizontal = extractInt64(inner["horizontal"])
 		s.InnerVertical = extractInt64(inner["vertical"])
 	}
 
-	if outer, ok := gaps["outer"].(map[string]any); ok {
+	if outer, outerOk := gaps["outer"].(map[string]any); outerOk {
 		s.OuterTop = extractScalarGap(outer["top"])
 		s.OuterBottom = extractScalarGap(outer["bottom"])
 		s.LeftGaps = extractMonitorGaps(outer["left"])
@@ -196,13 +196,13 @@ func updateMonitorGapInConfig(config map[string]any, side, monitorName string, g
 
 	updated := false
 	for _, item := range sideArray {
-		m, ok := item.(map[string]any)
-		if !ok {
+		m, itemOk := item.(map[string]any)
+		if !itemOk {
 			continue
 		}
 
-		monitor, ok := m["monitor"].(map[string]any)
-		if !ok {
+		monitor, monitorOk := m["monitor"].(map[string]any)
+		if !monitorOk {
 			continue
 		}
 
@@ -283,13 +283,13 @@ func extractMonitorGaps(v any) []MonitorGap {
 
 	var gaps []MonitorGap
 	for _, item := range arr {
-		m, ok := item.(map[string]any)
-		if !ok {
+		m, itemOk := item.(map[string]any)
+		if !itemOk {
 			continue
 		}
 
-		monitor, ok := m["monitor"].(map[string]any)
-		if !ok {
+		monitor, monitorOk := m["monitor"].(map[string]any)
+		if !monitorOk {
 			continue
 		}
 
@@ -337,8 +337,8 @@ func DefaultConfigPath() string {
 // WriteAtomic writes content to a file atomically using a temporary file.
 func WriteAtomic(path, content string) error {
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("create directory: %w", err)
+	if mkdirErr := os.MkdirAll(dir, 0750); mkdirErr != nil {
+		return fmt.Errorf("create directory: %w", mkdirErr)
 	}
 
 	// Create temp file in same directory for atomic rename.
@@ -352,26 +352,26 @@ func WriteAtomic(path, content string) error {
 	success := false
 	defer func() {
 		if !success {
-			if err := os.Remove(tmpPath); err != nil && !errors.Is(err, os.ErrNotExist) {
-				fmt.Fprintln(os.Stderr, "Failed to remove temp file:", err)
+			if rmErr := os.Remove(tmpPath); rmErr != nil && !errors.Is(rmErr, os.ErrNotExist) {
+				fmt.Fprintln(os.Stderr, "Failed to remove temp file:", rmErr)
 			}
 		}
 	}()
 
-	if _, err := tmp.WriteString(content); err != nil {
+	if _, writeErr := tmp.WriteString(content); writeErr != nil {
 		if closeErr := tmp.Close(); closeErr != nil {
-			return fmt.Errorf("write temp file: %w; close temp file: %v", err, closeErr)
+			return fmt.Errorf("write temp file: %w; close temp file: %w", writeErr, closeErr)
 		}
-		return fmt.Errorf("write temp file: %w", err)
+		return fmt.Errorf("write temp file: %w", writeErr)
 	}
 
-	if err := tmp.Close(); err != nil {
-		return fmt.Errorf("close temp file: %w", err)
+	if closeErr := tmp.Close(); closeErr != nil {
+		return fmt.Errorf("close temp file: %w", closeErr)
 	}
 
 	// Atomic rename.
-	if err := os.Rename(tmpPath, path); err != nil {
-		return fmt.Errorf("rename temp file: %w", err)
+	if renameErr := os.Rename(tmpPath, path); renameErr != nil {
+		return fmt.Errorf("rename temp file: %w", renameErr)
 	}
 
 	success = true

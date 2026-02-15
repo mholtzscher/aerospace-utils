@@ -2,12 +2,12 @@ package workspace
 
 import (
 	"context"
-	"fmt"
+
+	ufcli "github.com/urfave/cli/v3"
 
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
 	"github.com/mholtzscher/aerospace-utils/internal/config"
 	"github.com/mholtzscher/aerospace-utils/internal/output"
-	ufcli "github.com/urfave/cli/v3"
 )
 
 func newCurrentCommand() *ufcli.Command {
@@ -19,7 +19,7 @@ func newCurrentCommand() *ufcli.Command {
 Shows:
 - Config file path and gap values
 - State file path and per-monitor percentages`,
-		Action: func(ctx context.Context, cmd *ufcli.Command) error {
+		Action: func(_ context.Context, cmd *ufcli.Command) error {
 			return runCurrent(cmd)
 		},
 	}
@@ -37,36 +37,38 @@ func runCurrent(cmd *ufcli.Command) error {
 	out.PrintPath("path", configSvc.ConfigPath())
 
 	exists, err := configSvc.Exists()
-	if err != nil {
+	switch {
+	case err != nil:
 		out.Error("  Error checking config: %v\n", err)
-	} else if exists {
-		summary, err := configSvc.Summary()
-		if err != nil {
-			out.Error("  Error loading config: %v\n", err)
+	case exists:
+		summary, summaryErr := configSvc.Summary()
+		if summaryErr != nil {
+			out.Error("  Error loading config: %v\n", summaryErr)
 		} else {
 			printConfigSummary(out, summary)
 		}
-	} else {
+	default:
 		out.Unset("  (file not found)\n")
 	}
 
-	fmt.Println()
+	out.Println()
 
 	// Print state info
 	out.PrintHeader("State")
 	out.PrintPath("path", stateSvc.StatePath())
 
 	exists, err = stateSvc.Exists()
-	if err != nil {
+	switch {
+	case err != nil:
 		out.Error("  Error checking state: %v\n", err)
-	} else if exists {
-		monitors, err := stateSvc.Monitors()
-		if err != nil {
-			out.Error("  Error loading state: %v\n", err)
+	case exists:
+		monitors, monitorsErr := stateSvc.Monitors()
+		if monitorsErr != nil {
+			out.Error("  Error loading state: %v\n", monitorsErr)
 		} else {
 			printMonitorsSummary(out, monitors)
 		}
-	} else {
+	default:
 		out.Unset("  (file not found)\n")
 	}
 
