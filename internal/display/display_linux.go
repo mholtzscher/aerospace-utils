@@ -12,11 +12,12 @@ import (
 	"strings"
 )
 
-// xrandr output pattern: "DP-1 connected primary 2560x1440+0+0 ..."
+// xrandr output pattern: "DP-1 connected primary 2560x1440+0+0 ...".
 var connectedPattern = regexp.MustCompile(`^(\S+)\s+connected\s+(primary\s+)?(\d+)x(\d+)`)
 
 // Enumerate returns information about all active displays using xrandr.
 func Enumerate() ([]Info, error) {
+	//nolint:noctx // xrandr is a short-lived local command
 	cmd := exec.Command("xrandr", "--query")
 	output, err := cmd.Output()
 	if err != nil {
@@ -43,7 +44,7 @@ func Enumerate() ([]Info, error) {
 		}
 
 		displays = append(displays, Info{
-			ID:    uint32(len(displays)),
+			ID:    uint32(len(displays)), //nolint:gosec // Display IDs are sequential and won't overflow
 			Name:  name,
 			Width: width,
 			Main:  isPrimary,
