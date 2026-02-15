@@ -1,3 +1,4 @@
+//nolint:testpackage // Internal tests need access to unexported functions
 package gaps
 
 import (

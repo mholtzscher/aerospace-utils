@@ -7,13 +7,14 @@ import (
 	"strconv"
 	"strings"
 
+	ufcli "github.com/urfave/cli/v3"
+
 	"github.com/mholtzscher/aerospace-utils/internal/aerospace"
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
 	"github.com/mholtzscher/aerospace-utils/internal/config"
 	"github.com/mholtzscher/aerospace-utils/internal/display"
 	"github.com/mholtzscher/aerospace-utils/internal/gaps"
 	"github.com/mholtzscher/aerospace-utils/internal/output"
-	ufcli "github.com/urfave/cli/v3"
 )
 
 const flagSetDefault = "set-default"
@@ -38,7 +39,7 @@ Examples:
 				Usage: "Also set as the default percentage for this monitor",
 			},
 		},
-		Action: func(ctx context.Context, cmd *ufcli.Command) error {
+		Action: func(_ context.Context, cmd *ufcli.Command) error {
 			return runUse(cmd)
 		},
 	}
@@ -61,6 +62,7 @@ func runUse(cmd *ufcli.Command) error {
 	return applyPercentage(cmd, opts, out, explicitPercent)
 }
 
+//nolint:gocognit,funlen // Complex command orchestrating multiple services
 func applyPercentage(cmd *ufcli.Command, opts *cli.GlobalOptions, out *output.Printer, explicitPercent *int64) error {
 	configSvc := config.NewAerospaceService(opts.ConfigPath)
 	stateSvc := config.NewWorkspaceService(opts.StatePath)
@@ -75,8 +77,8 @@ func applyPercentage(cmd *ufcli.Command, opts *cli.GlobalOptions, out *output.Pr
 	}
 
 	// Validate percentage
-	if err := gaps.ValidatePercentage(*percentage); err != nil {
-		return err
+	if validationErr := gaps.ValidatePercentage(*percentage); validationErr != nil {
+		return validationErr
 	}
 
 	// Get monitor width
@@ -98,7 +100,7 @@ func applyPercentage(cmd *ufcli.Command, opts *cli.GlobalOptions, out *output.Pr
 	var gapMsg string
 
 	if shift != 0 {
-		if err := gaps.ValidateShift(monitorWidth, *percentage, shift); err != nil {
+		if validationErr := gaps.ValidateShift(monitorWidth, *percentage, shift); validationErr != nil {
 			// Shift is no longer valid for the current percentage.
 			shift = 0
 		} else {
@@ -128,44 +130,51 @@ func applyPercentage(cmd *ufcli.Command, opts *cli.GlobalOptions, out *output.Pr
 		return fmt.Errorf("check config: %w", err)
 	}
 	if !exists {
-		return fmt.Errorf("config file not found: %s\nCreate it manually or run 'aerospace' to generate a default config", configSvc.ConfigPath())
+		return fmt.Errorf(
+			"config file not found: %s\nCreate it manually or run 'aerospace' to generate a default config",
+			configSvc.ConfigPath(),
+		)
 	}
 
 	if useAsymmetric {
-		if err := configSvc.SetMonitorAsymmetricGaps(opts.Monitor, shiftedGaps.LeftGapPixels, shiftedGaps.RightGapPixels); err != nil {
-			return fmt.Errorf("update config: %w", err)
+		if asymErr := configSvc.SetMonitorAsymmetricGaps(
+			opts.Monitor,
+			shiftedGaps.LeftGapPixels,
+			shiftedGaps.RightGapPixels,
+		); asymErr != nil {
+			return fmt.Errorf("update config: %w", asymErr)
 		}
 	} else {
-		if err := configSvc.SetMonitorGaps(opts.Monitor, symmetricGapSize); err != nil {
-			return fmt.Errorf("update config: %w", err)
+		if symErr := configSvc.SetMonitorGaps(opts.Monitor, symmetricGapSize); symErr != nil {
+			return fmt.Errorf("update config: %w", symErr)
 		}
 	}
 
-	if err := configSvc.Write(); err != nil {
-		return fmt.Errorf("write config: %w", err)
+	if writeErr := configSvc.Write(); writeErr != nil {
+		return fmt.Errorf("write config: %w", writeErr)
 	}
 
 	// Update state - preserves shift by calling Update then SetShift
 	setDefaultFlag := cmd.Bool(flagSetDefault)
-	if err := stateSvc.Update(opts.Monitor, *percentage, setDefaultFlag); err != nil {
-		return fmt.Errorf("write state: %w", err)
+	if updateErr := stateSvc.Update(opts.Monitor, *percentage, setDefaultFlag); updateErr != nil {
+		return fmt.Errorf("write state: %w", updateErr)
 	}
 
 	// If shift was reset, write 0 to clear it
 	if originalShift != shift {
-		if err := stateSvc.SetShift(opts.Monitor, 0); err != nil {
-			return fmt.Errorf("write state: %w", err)
+		if clearErr := stateSvc.SetShift(opts.Monitor, 0); clearErr != nil {
+			return fmt.Errorf("write state: %w", clearErr)
 		}
 	}
 
 	// Reload aerospace config and build single-line output
 	reloadStatus := ""
 	if !opts.NoReload {
-		bin, err := aerospace.FindBinary()
-		if err != nil {
+		bin, findErr := aerospace.FindBinary()
+		if findErr != nil {
 			reloadStatus = " (aerospace not found)"
-		} else if err := bin.ReloadConfig(); err != nil {
-			reloadStatus = fmt.Sprintf(" (reload failed: %v)", err)
+		} else if reloadErr := bin.ReloadConfig(); reloadErr != nil {
+			reloadStatus = fmt.Sprintf(" (reload failed: %v)", reloadErr)
 		}
 	} else {
 		reloadStatus = " (reload skipped)"
@@ -185,7 +194,7 @@ func applyPercentage(cmd *ufcli.Command, opts *cli.GlobalOptions, out *output.Pr
 func resolveMonitorWidth(opts *cli.GlobalOptions) (int64, error) {
 	// Use explicit override if provided
 	if opts.MonitorWidth > 0 {
-		return int64(opts.MonitorWidth), nil
+		return opts.MonitorWidth, nil
 	}
 
 	// Check if display detection is available

@@ -159,14 +159,16 @@ import (
 func Enumerate() ([]Info, error) {
 	var displays [16]C.DisplayData
 
+	//nolint:gocritic // CGO requires pointer to first element
 	count := C.getDisplays(&displays[0], 16)
 	if count < 0 {
 		return nil, errors.New("failed to enumerate displays")
 	}
+	//nolint:gocritic // CGO requires pointer to first element
 	defer C.freeDisplayData(&displays[0], count)
 
 	result := make([]Info, count)
-	for i := 0; i < int(count); i++ {
+	for i := range int(count) {
 		result[i] = Info{
 			ID:    uint32(displays[i].id),
 			Name:  C.GoString(displays[i].name),

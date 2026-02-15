@@ -5,13 +5,16 @@ import (
 	"errors"
 	"fmt"
 
+	ufcli "github.com/urfave/cli/v3"
+
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
 	"github.com/mholtzscher/aerospace-utils/internal/config"
 	"github.com/mholtzscher/aerospace-utils/internal/gaps"
-	ufcli "github.com/urfave/cli/v3"
 )
 
 const flagBy = "by"
+
+const defaultAdjustBy = 5
 
 func newAdjustCommand() *ufcli.Command {
 	return &ufcli.Command{
@@ -33,11 +36,11 @@ Examples:
 			&ufcli.IntFlag{
 				Name:    flagBy,
 				Aliases: []string{"b"},
-				Value:   5,
+				Value:   defaultAdjustBy,
 				Usage:   "Amount to adjust workspace size percentage (positive or negative)",
 			},
 		},
-		Action: func(ctx context.Context, cmd *ufcli.Command) error {
+		Action: func(_ context.Context, cmd *ufcli.Command) error {
 			return runAdjust(cmd)
 		},
 	}
@@ -64,8 +67,8 @@ func runAdjust(cmd *ufcli.Command) error {
 	newPercent := *monState.Current + int64(amount)
 
 	// Validate new percentage
-	if err := gaps.ValidatePercentage(newPercent); err != nil {
-		return fmt.Errorf("adjusted percentage %d is invalid: %w", newPercent, err)
+	if validationErr := gaps.ValidatePercentage(newPercent); validationErr != nil {
+		return fmt.Errorf("adjusted percentage %d is invalid: %w", newPercent, validationErr)
 	}
 
 	// Delegate to gaps use
