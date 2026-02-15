@@ -27,7 +27,6 @@
   "directory": "go-nix-cli",
   "skip": [
     ".github/.release-please-manifest.json",
-    ".github/workflows/ci.yml",
     "CHANGELOG.md",
     "README.md",
     ".goreleaser.yaml",
