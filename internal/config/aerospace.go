@@ -370,6 +370,7 @@ func WriteAtomic(path, content string) error {
 	}
 
 	// Atomic rename.
+	//nolint:gosec // Path is user-provided via CLI flags and processed through ExpandPath
 	if renameErr := os.Rename(tmpPath, path); renameErr != nil {
 		return fmt.Errorf("rename temp file: %w", renameErr)
 	}
