@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/mholtzscher/templates.git",
-  "commit": "8357e05c7a2a8e94fe1dcda9729a28efef9a675b",
+  "commit": "ecb12807d95da37eef77bbfaa644b8016065b524",
   "context": {
     "cookiecutter": {
       "project_name": "aerospace-utils",
@@ -17,7 +17,7 @@
       "use_sqlc": "no",
       "go_version": "1.25",
       "_template": "https://github.com/mholtzscher/templates.git",
-      "_commit": "8357e05c7a2a8e94fe1dcda9729a28efef9a675b",
+      "_commit": "ecb12807d95da37eef77bbfaa644b8016065b524",
       "_copy_without_render": [
         "test/testscript/scripts/*.txtar",
         "db/*.sql"
