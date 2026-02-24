@@ -6,6 +6,7 @@ import (
 
 	ufcli "github.com/urfave/cli/v3"
 
+	"github.com/mholtzscher/aerospace-utils/cmd/windows"
 	"github.com/mholtzscher/aerospace-utils/cmd/workspace"
 	"github.com/mholtzscher/aerospace-utils/internal/cli"
 )
@@ -60,6 +61,7 @@ func Run(ctx context.Context, args []string) error {
 		},
 		Commands: []*ufcli.Command{
 			workspace.NewCommand(),
+			windows.NewCommand(),
 		},
 	}
 
