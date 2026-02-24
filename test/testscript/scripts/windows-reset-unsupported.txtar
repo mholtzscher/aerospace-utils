@@ -1,0 +1,5 @@
+# windows reset is unsupported on non-macOS.
+[darwin] skip 'non-macOS behavior'
+
+! exec aerospace-utils windows reset --no-color
+stderr 'windows reset is only supported on macOS'

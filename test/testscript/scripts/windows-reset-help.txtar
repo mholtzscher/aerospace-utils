@@ -1,0 +1,5 @@
+# Windows reset help output.
+
+exec aerospace-utils windows reset --help
+stdout 'reset'
+stdout 'Center'

@@ -1,0 +1,17 @@
+# windows reset runs osascript and reports moved count.
+[!darwin] skip 'macOS-only behavior'
+
+mkdir bin
+cp fake-osascript bin/osascript
+chmod 755 bin/osascript
+
+env PATH=$WORK/bin:$PATH
+
+exec aerospace-utils windows reset --no-color
+stdout 'Reset 9 windows'
+grep 'called' called
+
+-- fake-osascript --
+#!/bin/sh
+echo called > "$PWD/called"
+echo 'attempted=10 moved=9 failed=1'
