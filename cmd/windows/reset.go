@@ -41,6 +41,11 @@ func runReset(ctx context.Context, cmd *ufcli.Command) error {
 	}
 
 	if result.Moved == 0 {
+		if result.Attempted > 0 {
+			out.Warning("No windows moved (attempted=%d failed=%d)\n", result.Attempted, result.Failed)
+			return nil
+		}
+
 		out.Warning("No windows to reset\n")
 		return nil
 	}
