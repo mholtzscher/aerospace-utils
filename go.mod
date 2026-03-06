@@ -7,7 +7,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/rogpeppe/go-internal v1.14.1
-	github.com/urfave/cli/v3 v3.6.2
+	github.com/urfave/cli/v3 v3.7.0
 )
 
 require (
