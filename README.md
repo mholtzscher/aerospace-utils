@@ -89,14 +89,32 @@ go build -o aerospace-utils .
 
 ### Development Environment
 
-This project uses [direnv](https://direnv.net/) and [Nix](https://nixos.org/) for automatic environment setup.
-If you have `direnv` and `nix` installed:
+This project uses [devenv](https://devenv.sh/), [direnv](https://direnv.net/), and [Nix](https://nixos.org/) for automatic environment setup.
+If you have `devenv`, `direnv`, and `nix` installed:
 
 ```bash
 direnv allow
 ```
 
 This will provide a shell with all necessary dependencies (Go, golangci-lint, `just`, etc.).
+
+Without direnv, enter the environment manually:
+
+```bash
+devenv shell
+```
+
+Run the full development checks with:
+
+```bash
+devenv test
+```
+
+Update pinned development inputs with:
+
+```bash
+devenv update
+```
 
 Common development commands (via `just`):
 

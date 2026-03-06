@@ -13,9 +13,13 @@ A small CLI for adjusting Aerospace workspace sizing based on monitor gaps.
 
 ## Commands
 
-Uses direnv with nix flake for automatic environment setup. Use `just` for development tasks.
+Uses devenv with direnv for automatic environment setup. Use `just` for development tasks.
 
 ```bash
+# Shell
+devenv shell                   # enter development environment
+devenv test                    # run devenv-managed checks
+
 # Build
 just build                     # dev build
 just build-release             # release build
@@ -36,6 +40,7 @@ just check                     # run all checks (fmt, vet, lint, test)
 # Dependencies
 just tidy                      # go mod tidy
 just update-deps               # update dependencies and gomod2nix.toml
+devenv update                  # update pinned devenv inputs
 
 # Nix build/run
 nix build                      # build package
@@ -46,6 +51,9 @@ nix run                        # run package
 
 ```
 aerospace-utils/
+├── devenv.nix                 # Development environment definition
+├── devenv.yaml                # Pinned devenv inputs
+├── devenv.lock                # Resolved devenv input lockfile
 ├── main.go                     # Entry point
 ├── cmd/
 │   ├── root.go                 # Root command, global flags, imports workspace
@@ -79,7 +87,7 @@ aerospace-utils/
 │       └── testscript_test.go  # E2E testscript tests
 ├── go.mod
 ├── go.sum
-└── flake.nix
+└── flake.nix                  # Nix package/release build
 ```
 
 ## Code Style

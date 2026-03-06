@@ -68,33 +68,6 @@
         };
 
         formatter = pkgs.nixfmt-rfc-style;
-
-        devShells.default = pkgs.mkShell {
-          buildInputs = [
-            pkgs.go_1_25
-            pkgs.gopls
-            pkgs.gotools
-            pkgs.gomod2nix
-            pkgs.just
-            pkgs.cruft
-          ]
-          ++ buildInputs
-          ++ darwinBuildInputs;
-
-          # Set CGO_ENABLED="1" if you need CGO
-          CGO_ENABLED = "1";
-        };
-
-        devShells.ci = pkgs.mkShell {
-          buildInputs = [
-            pkgs.go_1_25
-            pkgs.just
-          ]
-          ++ buildInputs
-          ++ darwinBuildInputs;
-
-          CGO_ENABLED = "1";
-        };
       }
     );
 }

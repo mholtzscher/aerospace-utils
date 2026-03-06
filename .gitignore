@@ -13,7 +13,10 @@ result
 vendor/
 
 # Nix
+.devenv*
 .direnv/
+devenv.local.nix
+devenv.local.yaml
 
 # IDE
 .idea/
