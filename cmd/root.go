@@ -14,7 +14,7 @@ import (
 // Version is set at build time.
 //
 //nolint:gochecknoglobals // Version is set at build time via ldflags
-var Version = "0.3.3" // x-release-please-version
+var Version = "0.3.4" // x-release-please-version
 
 // Run is the entry point for the CLI.
 func Run(ctx context.Context, args []string) error {
