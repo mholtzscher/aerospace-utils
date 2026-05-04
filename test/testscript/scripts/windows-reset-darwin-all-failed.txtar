@@ -1,0 +1,15 @@
+# windows reset reports when no windows moved.
+[!darwin] skip 'macOS-only behavior'
+
+mkdir bin
+cp fake-osascript bin/osascript
+chmod 755 bin/osascript
+
+env PATH=$WORK/bin:$PATH
+
+exec aerospace-utils windows reset --no-color
+stdout 'No windows moved \(attempted=4 failed=4\)'
+
+-- fake-osascript --
+#!/bin/sh
+echo 'attempted=4 moved=0 failed=4'

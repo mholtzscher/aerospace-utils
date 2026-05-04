@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.4](https://github.com/mholtzscher/aerospace-utils/compare/v0.3.3...v0.3.4) (2026-03-06)
+
+
+### Features
+
+* **windows:** add reset command to recenter macOS windows ([#11](https://github.com/mholtzscher/aerospace-utils/issues/11)) ([d82cef5](https://github.com/mholtzscher/aerospace-utils/commit/d82cef52decdc440874047cba1c381637b60e4b5))
+
 ## [0.3.3](https://github.com/mholtzscher/aerospace-utils/compare/v0.3.2...v0.3.3) (2026-01-29)
 
 

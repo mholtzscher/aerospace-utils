@@ -1,0 +1,5 @@
+# Windows command help shows reset subcommand.
+
+exec aerospace-utils windows --help
+stdout 'windows'
+stdout 'reset'

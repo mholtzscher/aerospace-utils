@@ -164,8 +164,8 @@ schema = 3
     version = "v0.2.0"
     hash = "sha256-FSoHfW0jeHUQ1PeKcPeVcWDtJLDV+EzCvpyzk3y7su4="
   [mod."github.com/fatih/color"]
-    version = "v1.18.0"
-    hash = "sha256-pP5y72FSbi4j/BjyVq/XbAOFjzNjMxZt2R/lFFxGWvY="
+    version = "v1.19.0"
+    hash = "sha256-YgMm1nid8yigNLG6aHfuMbsvMI1UYVf/Rkg44pp/NTU="
   [mod."github.com/fatih/structtag"]
     version = "v1.2.0"
     hash = "sha256-Y2pjiEmMsxfUH8LONU2/f8k1BibOHeLKJmi4uZm/SSU="
@@ -410,8 +410,8 @@ schema = 3
     version = "v1.9.5"
     hash = "sha256-RJ9K1BTId0Mled7S66iGgxHkZ5JKEIsrrNaEfM8aImc="
   [mod."github.com/pelletier/go-toml/v2"]
-    version = "v2.2.4"
-    hash = "sha256-8qQIPldbsS5RO8v/FW/se3ZsAyvLzexiivzJCbGRg2Q="
+    version = "v2.3.0"
+    hash = "sha256-3ftKBqSwUp5rs10NigReAJ8RxfnP4Aol45EkP0XRaa4="
   [mod."github.com/pmezard/go-difflib"]
     version = "v1.0.0"
     hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="
@@ -539,8 +539,8 @@ schema = 3
     version = "v0.2.0"
     hash = "sha256-m56XF350CsHgKsbCTQ0Q1Joz2/a+S4+fnkMCx2upJ4Q="
   [mod."github.com/urfave/cli/v3"]
-    version = "v3.6.2"
-    hash = "sha256-GeTwfmXv2okvX2kmMREozvH4PH6ihPNVFSNSWrW+gyQ="
+    version = "v3.8.0"
+    hash = "sha256-mLBHZBcxBiuBcQg2A2nYHMrr8muLBuIQMAIZh6ZuJfw="
   [mod."github.com/uudashr/gocognit"]
     version = "v1.2.0"
     hash = "sha256-C4EsT9FchhzgLmDlQSRF1q1pzqIFHnLqM3VERDWSnug="
@@ -596,8 +596,8 @@ schema = 3
     version = "v0.19.0"
     hash = "sha256-RbRZ+sKZUurOczGhhzOoY/sojTlta3H9XjL4PXX/cno="
   [mod."golang.org/x/sys"]
-    version = "v0.41.0"
-    hash = "sha256-owjs3/IzAKfFlIz1U1fiHSfl2+bTUhaXTyWEjL5SWHk="
+    version = "v0.42.0"
+    hash = "sha256-LhNedvUEJbPYyR6EoU91rfOr3DBBoauLOcMcyqghEos="
   [mod."golang.org/x/text"]
     version = "v0.34.0"
     hash = "sha256-wGKd1JkeiFROibvo2kkAuQ7JajSIfV4utGaoGbTQhQM="

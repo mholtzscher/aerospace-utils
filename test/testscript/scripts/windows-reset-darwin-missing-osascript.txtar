@@ -1,0 +1,7 @@
+# windows reset errors when osascript is missing.
+[!darwin] skip 'macOS-only behavior'
+
+env PATH=$TESTSCRIPT_BIN
+
+! exec aerospace-utils windows reset --no-color
+stderr 'osascript not found in PATH'

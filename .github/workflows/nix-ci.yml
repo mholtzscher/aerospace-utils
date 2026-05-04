@@ -27,10 +27,10 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v21
+        uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Configure Cachix
-        uses: cachix/cachix-action@v16
+        uses: cachix/cachix-action@v17
         with:
           name: ${{ github.repository_owner }}
           authToken: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.CACHIX_AUTH_TOKEN || '' }}

@@ -9,6 +9,7 @@ A CLI tool to dynamically adjust [Aerospace](https://github.com/nikitabobko/Aero
 - **Position Shifting**: Shift the workspace left/right by a percentage while keeping the same workspace width.
 - **State Management**: Remembers your current settings and default preferences.
 - **Aerospace Integration**: Automatically updates `aerospace.toml` and reloads the configuration.
+- **Window Recovery (macOS)**: Recenter visible app windows onto the main display when windows end up off-screen after exiting Aerospace.
 
 ## Why?
 
@@ -34,6 +35,7 @@ This is especially useful for **ultra-wide monitors** where you might want a cen
   - [Set Workspace Size](#set-workspace-size)
   - [Adjust Size](#adjust-size)
   - [Shift Position](#shift-position)
+  - [Reset Off-Screen Windows](#reset-off-screen-windows)
   - [View Configuration](#view-configuration)
   - [Global Options](#global-options)
 - [How it Works](#how-it-works)
@@ -158,6 +160,24 @@ aerospace-utils workspace shift
 # Shift on a specific monitor
 aerospace-utils workspace shift -b 5 --monitor "Dell U2722D"
 ```
+
+### Reset Off-Screen Windows
+
+Best-effort recovery for macOS app windows that drift off-screen (for example after disabling Aerospace).
+
+The command attempts to resize each visible window to 95% of the main display, then centers it.
+
+```bash
+# Recenter visible windows on the main display
+aerospace-utils windows reset
+
+# Preview only
+aerospace-utils windows reset --dry-run
+```
+
+Notes:
+- Requires macOS Accessibility/Automation permission for your terminal app.
+- Some apps/windows may reject move/resize requests; command continues for the rest.
 
 ### View Configuration
 
