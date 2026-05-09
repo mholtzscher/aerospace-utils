@@ -49,7 +49,7 @@ jobs:
               git config user.name "github-actions[bot]"
               git config user.email "github-actions[bot]@users.noreply.github.com"
               git add gomod2nix.toml
-              git commit -m "chore: update gomod2nix.toml [skip ci]"
+              git commit -m "chore: update gomod2nix.toml"
               git push
               echo "Fixed and pushed gomod2nix.toml — CI will re-trigger the check"
             else
