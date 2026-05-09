@@ -410,8 +410,8 @@ schema = 3
     version = "v1.9.5"
     hash = "sha256-RJ9K1BTId0Mled7S66iGgxHkZ5JKEIsrrNaEfM8aImc="
   [mod."github.com/pelletier/go-toml/v2"]
-    version = "v2.3.0"
-    hash = "sha256-3ftKBqSwUp5rs10NigReAJ8RxfnP4Aol45EkP0XRaa4="
+    version = "v2.3.1"
+    hash = "sha256-5H8+UOtPOs+Yc+8oVT/3bugCCdbq3jFMH6eOW8dadyg="
   [mod."github.com/pmezard/go-difflib"]
     version = "v1.0.0"
     hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="
