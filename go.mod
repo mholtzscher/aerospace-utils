@@ -5,9 +5,9 @@ go 1.25.0
 require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/fatih/color v1.19.0
-	github.com/pelletier/go-toml/v2 v2.3.1
+	github.com/pelletier/go-toml/v2 v2.4.0
 	github.com/rogpeppe/go-internal v1.15.0
-	github.com/urfave/cli/v3 v3.9.0
+	github.com/urfave/cli/v3 v3.10.0
 )
 
 require (
