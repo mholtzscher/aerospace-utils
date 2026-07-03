@@ -410,8 +410,8 @@ schema = 3
     version = "v1.9.5"
     hash = "sha256-RJ9K1BTId0Mled7S66iGgxHkZ5JKEIsrrNaEfM8aImc="
   [mod."github.com/pelletier/go-toml/v2"]
-    version = "v2.4.0"
-    hash = "sha256-RfZLQPFujCKUmT5f1VzkgpyK2E1gH5yUQbi4VRBEzxk="
+    version = "v2.4.2"
+    hash = "sha256-5o0FLXD0pMCl5OMqdTZGuPz8C6M6qO7xK7QHi1X7bZU="
   [mod."github.com/pmezard/go-difflib"]
     version = "v1.0.0"
     hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="
@@ -539,8 +539,8 @@ schema = 3
     version = "v0.2.0"
     hash = "sha256-m56XF350CsHgKsbCTQ0Q1Joz2/a+S4+fnkMCx2upJ4Q="
   [mod."github.com/urfave/cli/v3"]
-    version = "v3.10.0"
-    hash = "sha256-hcyKki7xpLysts5QLE2Ph/83efgoNlh8jaCTaobpWG4="
+    version = "v3.10.1"
+    hash = "sha256-NohRjwIBB2paQw28R9/BDU3mVtb6GS9MHaTM49eNJSs="
   [mod."github.com/uudashr/gocognit"]
     version = "v1.2.0"
     hash = "sha256-C4EsT9FchhzgLmDlQSRF1q1pzqIFHnLqM3VERDWSnug="
