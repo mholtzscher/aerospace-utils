@@ -539,8 +539,8 @@ schema = 3
     version = "v0.2.0"
     hash = "sha256-m56XF350CsHgKsbCTQ0Q1Joz2/a+S4+fnkMCx2upJ4Q="
   [mod."github.com/urfave/cli/v3"]
-    version = "v3.10.1"
-    hash = "sha256-NohRjwIBB2paQw28R9/BDU3mVtb6GS9MHaTM49eNJSs="
+    version = "v3.11.0"
+    hash = "sha256-eRl3+ju/aunSEE2czagBZOdhPVc6P/GEajpbNwnSY2Q="
   [mod."github.com/uudashr/gocognit"]
     version = "v1.2.0"
     hash = "sha256-C4EsT9FchhzgLmDlQSRF1q1pzqIFHnLqM3VERDWSnug="
