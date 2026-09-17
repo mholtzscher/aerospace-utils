@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.5](https://github.com/mholtzscher/aerospace-utils/compare/v0.3.4...v0.3.5) (2026-09-17)
+
+
+### Bug Fixes
+
+* **nix:** use default Go toolchain instead of removed go_1_25 ([f4ac173](https://github.com/mholtzscher/aerospace-utils/commit/f4ac173262841a3712b70d9cfc2f9ab4a3f714d4))
+
 ## [0.3.4](https://github.com/mholtzscher/aerospace-utils/compare/v0.3.3...v0.3.4) (2026-03-06)
 
 
