@@ -151,9 +151,6 @@ schema = 3
   [mod."github.com/dave/dst"]
     version = "v0.27.3"
     hash = "sha256-H8B3cELZQFoZEMyBBNOvTZxrOyZj6KkRpa9y+HNWrcc="
-  [mod."github.com/davecgh/go-spew"]
-    version = "v1.1.1"
-    hash = "sha256-nhzSUrE1fCkN0+RL04N4h8jWmRFPPPWbCuDc7Ss0akI="
   [mod."github.com/denis-tingaikin/go-header"]
     version = "v0.5.0"
     hash = "sha256-ugkGuTlpc1jYeIm4zO/wwEYfqZn1oKS6aZrgbv0E7/8="
@@ -412,9 +409,6 @@ schema = 3
   [mod."github.com/pelletier/go-toml/v2"]
     version = "v2.4.3"
     hash = "sha256-CyCjKBN+zUciGhQiaFpq54qv+NDITcuh5U2HmjArow4="
-  [mod."github.com/pmezard/go-difflib"]
-    version = "v1.0.0"
-    hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="
   [mod."github.com/prometheus/client_golang"]
     version = "v1.12.1"
     hash = "sha256-QQPuyDb3jydugvx7/qfDQZLUHCCB+fx8e/L+2Gy0hjQ="
@@ -509,11 +503,11 @@ schema = 3
     version = "v0.3.1"
     hash = "sha256-wEfYJmxFifyukbZejjVMj5R2i55PWbN0n94iIBNu9BY="
   [mod."github.com/stretchr/objx"]
-    version = "v0.5.2"
-    hash = "sha256-VKYxrrFb1nkX6Wu3tE5DoP9+fCttwSl9pgLN6567nck="
+    version = "v0.5.3"
+    hash = "sha256-4s8d7MdRKq4r7QjkIFCdwjKehc6Hi5mS4xuZ2v2QYR8="
   [mod."github.com/stretchr/testify"]
-    version = "v1.11.1"
-    hash = "sha256-sWfjkuKJyDllDEtnM8sb/pdLzPQmUYWYtmeWz/5suUc="
+    version = "v1.12.1"
+    hash = "sha256-9MTDdVjZMh1MJ5EH3HmAFrm24YqZayeMBgKwtaURZCc="
   [mod."github.com/subosito/gotenv"]
     version = "v1.4.1"
     hash = "sha256-aHAUs8Gh+BREUulljWr7vBZQg1BLu/M/8UfNK8CWSn8="
@@ -539,8 +533,8 @@ schema = 3
     version = "v0.2.0"
     hash = "sha256-m56XF350CsHgKsbCTQ0Q1Joz2/a+S4+fnkMCx2upJ4Q="
   [mod."github.com/urfave/cli/v3"]
-    version = "v3.11.0"
-    hash = "sha256-eRl3+ju/aunSEE2czagBZOdhPVc6P/GEajpbNwnSY2Q="
+    version = "v3.12.0"
+    hash = "sha256-6/jdAvvFE6nhDxsUCL9GcvC9tfJ+530kUSgCv6AHZEQ="
   [mod."github.com/uudashr/gocognit"]
     version = "v1.2.0"
     hash = "sha256-C4EsT9FchhzgLmDlQSRF1q1pzqIFHnLqM3VERDWSnug="
@@ -584,8 +578,8 @@ schema = 3
     version = "v1.27.0"
     hash = "sha256-8655KDrulc4Das3VRduO9MjCn8ZYD5WkULjCvruaYsU="
   [mod."go.yaml.in/yaml/v3"]
-    version = "v3.0.4"
-    hash = "sha256-NkGFiDPoCxbr3LFsI6OCygjjkY0rdmg5ggvVVwpyDQ4="
+    version = "v3.0.5"
+    hash = "sha256-ygho+GU5kE7vPMx+dZYyNfCaeMjNxj66XmrcVf3afFE="
   [mod."golang.org/x/exp/typeparams"]
     version = "v0.0.0-20260209203927-2842357ff358"
     hash = "sha256-H92+0L1kY6OHen1YctecROkC2/a/tLx7oWan/XaInA0="
